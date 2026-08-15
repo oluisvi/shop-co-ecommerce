@@ -1,0 +1,19 @@
+@media (max-width: 767px) {
+  .category-masthead h1 span {
+    display: block;
+    overflow-wrap: anywhere;
+  }
+
+  .mobile-panel,
+  .filter-panel {
+    transform: none;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .mobile-panel.is-open,
+  .filter-panel.is-open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}

@@ -1,40 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# SHOP.CO
 
-## Getting Started
+SHOP.CO is a static fashion storefront rebuilt as an **Urban Fashion Journal**: a bold monochrome editorial experience focused on products, responsive composition, accessibility, and restrained motion.
 
-First, run the development server:
+## Phase 1 — Visual revitalization
+
+This release modernizes the existing interface without adding commerce infrastructure. It includes the three original routes:
+
+- `/` — editorial home, brands, product edits, dress styles, and reviews
+- `/categories` — casual catalog with demonstrative filters and pagination
+- `/products` — One Life Graphic T-shirt preview with a gallery and local option states
+
+Every product currently links to the same demonstration product page. Search, filters, sorting, pagination, cart, newsletter delivery, and account controls are explicitly presented as previews or unavailable features.
+
+## Stack
+
+- Next.js 15 Pages Router
+- React 19 and TypeScript
+- Global CSS with design and motion tokens
+- `next/image` and `next/font/local`
+- Node's built-in test runner
+
+## Run locally
 
 ```bash
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`.
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+```bash
+npm run dev        # development server
+npm run test       # static data and validation tests
+npm run typecheck  # TypeScript without output
+npm run lint       # ESLint
+npm run build      # optimized production build
+npm run start      # serve the production build
+```
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+## Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```text
+src/
+  components/  shared shell, cards, ratings, metadata, and forms
+  data/        typed static products and reviews
+  lib/         framework-independent validation
+  pages/       Pages Router route compositions
+  styles/      visual system and local fonts
+  types/       store content contracts
+```
 
-## Learn More
+## Design and motion
 
-To learn more about Next.js, take a look at the following resources:
+The interface uses Integral CF for oversized editorial display type and Satoshi for body and utility text. Its palette stays black, white, and neutral. Strong rules, asymmetric grids, product photography, and compact issue labels provide the journal character.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+Motion is CSS-only. Hero content enters with a short coordinated fade/translation, product imagery receives contained hover feedback, and panels use quick transforms. `prefers-reduced-motion` reduces transitions and reveals all content immediately.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Accessibility
 
-## Deploy on Vercel
+- Semantic landmarks and one `h1` per route
+- Skip link, breadcrumbs, visible focus, and keyboard navigation
+- Mobile menu closes with Escape, locks scroll, traps focus, and restores focus
+- Labeled forms and controls with local `aria-live` feedback
+- Descriptive product imagery and hidden decorative graphics
+- Honest disabled or explanatory Phase 1 controls
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Performance
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+- Only the route LCP image receives priority
+- Responsive `sizes` and stable aspect-ratio containers for product imagery
+- WOFF2 variable Satoshi font and locally hosted display font through `next/font/local`
+- No animation, UI, state-management, or API client library
+- Static prerendering for all public routes
+
+## Roadmap
+
+1. **Phase 1 — Visual revitalization:** design system, responsive layouts, accessibility, SEO, motion, and performance.
+2. **Phase 2 — Functional frontend:** local catalog behavior, search, filters, and cart.
+3. **Phase 3 — Real e-commerce:** backend, authentication, inventory, orders, and checkout.
+
+Backend, database, Prisma, authentication, real inventory, payments, checkout, persisted cart, and external newsletter delivery are intentionally outside Phase 1.
