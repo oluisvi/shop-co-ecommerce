@@ -1,3 +1,123 @@
+.mobile-panel :focus-visible,
+.product-section--dark :focus-visible,
+.newsletter :focus-visible,
+.site-footer :focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 4px;
+}
+
+.swatch input:focus-visible + span,
+.filter-sizes input:focus-visible + span {
+  outline: 3px solid #000;
+  outline-offset: 4px;
+}
+
+.rating > .rating-stars {
+  display: inline-flex;
+  gap: 0.08rem;
+  color: inherit;
+  letter-spacing: 0;
+}
+
+.rating-star {
+  color: #c7c7c7;
+}
+
+.rating-star--full {
+  color: #f1b900;
+}
+
+.rating-star--half {
+  color: transparent;
+  background: linear-gradient(90deg, #f1b900 50%, #c7c7c7 50%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .mobile-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    display: block;
+    background: rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity var(--base), visibility var(--base);
+  }
+
+  .mobile-backdrop.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .mobile-panel {
+    position: fixed;
+    inset: 0 0 0 auto;
+    z-index: 50;
+    display: flex;
+    width: min(88vw, 390px);
+    flex-direction: column;
+    padding: 1rem 1.25rem 2rem;
+    color: #fff;
+    background: var(--charcoal);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity var(--base), visibility var(--base);
+  }
+
+  .mobile-panel.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .mobile-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #444;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+  }
+
+  .mobile-panel .icon-button {
+    color: #fff;
+  }
+
+  .mobile-panel nav {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .mobile-panel nav a {
+    display: grid;
+    grid-template-columns: 2rem 1fr;
+    gap: 1rem;
+    padding: 1.3rem 0;
+    border-bottom: 1px solid #444;
+    font-family: var(--display);
+    font-size: 1.35rem;
+    text-transform: uppercase;
+  }
+
+  .mobile-panel nav span {
+    font-family: var(--body);
+    font-size: 0.65rem;
+  }
+
+  .mobile-panel-note {
+    margin-top: auto;
+    color: #aaa;
+    font-size: 0.8rem;
+  }
+}
+
 @media (max-width: 767px) {
   .category-masthead h1 span {
     display: block;
@@ -15,5 +135,19 @@
   .filter-panel.is-open {
     opacity: 1;
     pointer-events: auto;
+  }
+}
+
+@media (max-width: 360px) {
+  .product-grid--catalog {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-brand {
+    grid-column: auto;
   }
 }
