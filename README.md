@@ -13,7 +13,7 @@
   <a href="#roadmap">Roadmap</a>
 </p>
 
-[![SHOP.CO live homepage](https://image.thum.io/get/width/1200/crop/760/png/maxAge/24/wait/4/https://shop-co-ecommerce-three.vercel.app/)](https://shop-co-ecommerce-three.vercel.app/)
+[![SHOP.CO live homepage](https://image.thum.io/get/width/1200/crop/760/png/maxAge/24/wait/4/https://shop-co-store.vercel.app/)](https://shop-co-store.vercel.app/)
 
 > The images in this README are live snapshots of the deployed project, so the gallery follows the current production interface instead of documenting an old mockup.
 
@@ -81,11 +81,11 @@ The catalog remains intentionally local so the portfolio build stays determinist
 
 ### Catalog
 
-[![SHOP.CO catalog](https://image.thum.io/get/width/1200/crop/760/png/maxAge/24/wait/4/https://shop-co-ecommerce-three.vercel.app/categories)](https://shop-co-ecommerce-three.vercel.app/categories)
+[![SHOP.CO catalog](https://image.thum.io/get/width/1200/crop/760/png/maxAge/24/wait/4/https://shop-co-store.vercel.app/categories/)](https://shop-co-store.vercel.app/categories/)
 
 ### Product detail
 
-[![SHOP.CO product page](https://image.thum.io/get/width/1200/crop/760/png/maxAge/24/wait/4/https://shop-co-ecommerce-three.vercel.app/products/one-life)](https://shop-co-ecommerce-three.vercel.app/products/one-life)
+[![SHOP.CO product page](https://image.thum.io/get/width/1200/crop/760/png/maxAge/24/wait/4/https://shop-co-store.vercel.app/products/one-life)](https://shop-co-store.vercel.app/products/one-life)
 
 ## Design direction
 
