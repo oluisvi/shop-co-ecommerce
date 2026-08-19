@@ -1,202 +1,343 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 export default function HeroScene() {
   const hostRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const host = hostRef.current;
-    const canvas = canvasRef.current;
+    if (!host) return;
 
-    if (!host || !canvas) return;
+    const hero = host.closest<HTMLElement>(".hero-experience");
+    const visual = host.closest<HTMLElement>(".hero-visual--3d");
 
-    let renderer: THREE.WebGLRenderer;
+    host.style.cursor = "grab";
+    host.style.touchAction = "pan-y";
 
-    try {
-      renderer = new THREE.WebGLRenderer({
-        canvas,
-        alpha: true,
-        antialias: true,
-        powerPreference: "high-performance",
-      });
-    } catch {
-      host.dataset.webgl = "fallback";
-      return;
-    }
+    const scene = new THREE.Scene();
 
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
+    camera.position.set(0, 0.1, 7.2);
+
+    const renderer = new THREE.WebGLRenderer({
+      alpha: true,
+      antialias: true,
+      powerPreference: "high-performance",
+    });
+
     renderer.setClearColor(0x000000, 0);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.08;
+    renderer.toneMappingExposure = 1.15;
+    renderer.domElement.style.width = "100%";
+    renderer.domElement.style.height = "100%";
+    renderer.domElement.style.display = "block";
 
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 40);
-    camera.position.set(0, 0, 6.7);
+    host.appendChild(renderer.domElement);
 
-    const sculpture = new THREE.Group();
-    scene.add(sculpture);
+    const root = new THREE.Group();
+    scene.add(root);
 
-    const mainGeometry = new THREE.TorusKnotGeometry(1.34, 0.27, 128, 18, 2, 3);
-    const mainMaterial = new THREE.MeshPhysicalMaterial({
-      color: 0xf4f4ef,
-      roughness: 0.36,
-      metalness: 0.06,
-      clearcoat: 0.38,
-      clearcoatRoughness: 0.48,
-    });
-    const knot = new THREE.Mesh(mainGeometry, mainMaterial);
-    knot.rotation.set(-0.24, 0.18, 0.2);
-    sculpture.add(knot);
+    // Lighting: neutral key + cooler rim + subtle urban olive accent.
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x303030, 2.2));
 
-    const wireGeometry = new THREE.WireframeGeometry(mainGeometry);
-    const wireMaterial = new THREE.LineBasicMaterial({
-      color: 0x151515,
-      transparent: true,
-      opacity: 0.18,
-    });
-    const wire = new THREE.LineSegments(wireGeometry, wireMaterial);
-    wire.scale.setScalar(1.006);
-    knot.add(wire);
+    const key = new THREE.DirectionalLight(0xffffff, 4.8);
+    key.position.set(4.5, 5.5, 6);
+    scene.add(key);
 
-    const orbitGeometryA = new THREE.TorusGeometry(1.92, 0.012, 6, 120);
-    const orbitMaterialA = new THREE.MeshBasicMaterial({
-      color: 0x7b7b77,
-      transparent: true,
-      opacity: 0.58,
-    });
-    const orbitA = new THREE.Mesh(orbitGeometryA, orbitMaterialA);
-    orbitA.rotation.set(1.03, 0.22, 0.34);
-    sculpture.add(orbitA);
+    const rim = new THREE.DirectionalLight(0xb9c9ff, 2.8);
+    rim.position.set(-4.5, 2.5, -4);
+    scene.add(rim);
 
-    const orbitGeometryB = new THREE.TorusGeometry(1.46, 0.009, 6, 100);
-    const orbitMaterialB = new THREE.MeshBasicMaterial({
-      color: 0xb8b8b2,
-      transparent: true,
-      opacity: 0.38,
-    });
-    const orbitB = new THREE.Mesh(orbitGeometryB, orbitMaterialB);
-    orbitB.rotation.set(0.46, 1.08, -0.48);
-    sculpture.add(orbitB);
+    const accent = new THREE.PointLight(0xb7c2a5, 18, 12);
+    accent.position.set(-2.5, -1.5, 3.5);
+    scene.add(accent);
 
-    const hemisphere = new THREE.HemisphereLight(0xffffff, 0x252525, 2.25);
-    const key = new THREE.DirectionalLight(0xffffff, 3.2);
-    const rim = new THREE.DirectionalLight(0xc7c7c7, 1.55);
-    key.position.set(3.5, 4.2, 4.4);
-    rim.position.set(-4.2, -2.1, 3.2);
-    scene.add(hemisphere, key, rim);
+    let model: THREE.Object3D | null = null;
+    let disposed = false;
 
-    const pointer = new THREE.Vector2();
-    const easedPointer = new THREE.Vector2();
+    const loader = new GLTFLoader();
 
-    const resize = () => {
-      const rect = host.getBoundingClientRect();
-      const width = Math.max(1, Math.floor(rect.width));
-      const height = Math.max(1, Math.floor(rect.height));
+    loader.load(
+      "/models/fashion_figure_base.glb",
+      (gltf) => {
+        if (disposed) return;
 
-      renderer.setSize(width, height, false);
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
+        model = gltf.scene;
+
+        // Preserve the model's materials, but make sure they respond nicely
+        // to the hero lighting.
+        model.traverse((object) => {
+          if (!(object instanceof THREE.Mesh)) return;
+
+          object.castShadow = false;
+          object.receiveShadow = false;
+
+          const materials = Array.isArray(object.material)
+            ? object.material
+            : [object.material];
+
+          materials.forEach((material) => {
+            if (
+              material instanceof THREE.MeshStandardMaterial ||
+              material instanceof THREE.MeshPhysicalMaterial
+            ) {
+              material.envMapIntensity = 1.1;
+              material.needsUpdate = true;
+            }
+          });
+        });
+
+        // Normalize any GLB size automatically.
+        const initialBounds = new THREE.Box3().setFromObject(model);
+        const initialSize = initialBounds.getSize(new THREE.Vector3());
+
+        const targetHeight = 3.4;
+        const scale = targetHeight / Math.max(initialSize.y, 0.001);
+
+        model.scale.setScalar(scale);
+        model.updateMatrixWorld(true);
+
+        // Recalculate after scaling and center the real geometry.
+        const bounds = new THREE.Box3().setFromObject(model);
+        const center = bounds.getCenter(new THREE.Vector3());
+
+        model.position.x -= center.x;
+        model.position.y -= center.y;
+        model.position.z -= center.z;
+
+        root.add(model);
+
+        root.rotation.set(-0.04, -0.35, 0);
+
+        // Only remove the static fallback after the GLB really loaded.
+        hero?.classList.add("hero-experience--fashion-model");
+        visual?.classList.add("hero-visual--fashion-model");
+        host.dataset.model = "ready";
+      },
+      undefined,
+      (error) => {
+        console.error("Could not load fashion figure GLB:", error);
+        host.dataset.model = "error";
+      },
+    );
+
+    let dragging = false;
+    let previousX = 0;
+    let previousY = 0;
+    let targetX = -0.04;
+    let targetY = -0.35;
+    let velocityX = 0;
+    let velocityY = 0;
+
+    const pointerDown = (event: PointerEvent) => {
+      dragging = true;
+      previousX = event.clientX;
+      previousY = event.clientY;
+      velocityX = 0;
+      velocityY = 0;
+
+      host.style.cursor = "grabbing";
+      host.setPointerCapture?.(event.pointerId);
     };
 
-    const onPointerMove = (event: PointerEvent) => {
-      const rect = host.getBoundingClientRect();
-      if (!rect.width || !rect.height) return;
+    const pointerMove = (event: PointerEvent) => {
+      if (!dragging) return;
 
-      pointer.set(
-        ((event.clientX - rect.left) / rect.width - 0.5) * 2,
-        -(((event.clientY - rect.top) / rect.height - 0.5) * 2),
-      );
+      const deltaX = event.clientX - previousX;
+      const deltaY = event.clientY - previousY;
+
+      previousX = event.clientX;
+      previousY = event.clientY;
+
+      targetY += deltaX * 0.008;
+      targetX += deltaY * 0.0025;
+
+      targetX = THREE.MathUtils.clamp(targetX, -0.22, 0.18);
+
+      velocityY = deltaX * 0.00065;
+      velocityX = deltaY * 0.00016;
     };
 
-    const onPointerLeave = () => {
-      pointer.set(0, 0);
+    const pointerUp = (event: PointerEvent) => {
+      dragging = false;
+      host.style.cursor = "grab";
+
+      if (host.hasPointerCapture?.(event.pointerId)) {
+        host.releasePointerCapture(event.pointerId);
+      }
     };
 
-    host.addEventListener("pointermove", onPointerMove, { passive: true });
-    host.addEventListener("pointerleave", onPointerLeave);
+    host.addEventListener("pointerdown", pointerDown);
+    host.addEventListener("pointermove", pointerMove);
+    host.addEventListener("pointerup", pointerUp);
+    host.addEventListener("pointercancel", pointerUp);
 
-    const resizeObserver =
-      typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null;
-    resizeObserver?.observe(host);
-    window.addEventListener("resize", resize, { passive: true });
-    resize();
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
 
-    const render = (time: number) => {
-      const seconds = time * 0.001;
-      easedPointer.lerp(pointer, 0.045);
+    const clock = new THREE.Clock();
+    let visible = true;
+    let pageVisible = !document.hidden;
 
-      sculpture.rotation.y = seconds * 0.17 + easedPointer.x * 0.18;
-      sculpture.rotation.x = Math.sin(seconds * 0.34) * 0.045 - easedPointer.y * 0.08;
-      sculpture.rotation.z = Math.cos(seconds * 0.22) * 0.025;
-      sculpture.position.y = Math.sin(seconds * 0.45) * 0.045;
+    const render = () => {
+      const time = clock.getElapsedTime();
+
+      if (!dragging && !reducedMotion) {
+        targetY += 0.0018 + velocityY;
+        targetX += velocityX;
+
+        velocityY *= 0.94;
+        velocityX *= 0.92;
+      }
+
+      root.rotation.y += (targetY - root.rotation.y) * 0.08;
+      root.rotation.x += (targetX - root.rotation.x) * 0.08;
+
+      if (!reducedMotion) {
+        root.position.y = Math.sin(time * 0.7) * 0.035;
+      }
 
       renderer.render(scene, camera);
     };
 
-    let visible = true;
-
-    const start = () => {
-      if (visible && document.visibilityState === "visible") {
-        renderer.setAnimationLoop(render);
-      }
+    const syncLoop = () => {
+      renderer.setAnimationLoop(visible && pageVisible ? render : null);
     };
 
-    const stop = () => {
-      renderer.setAnimationLoop(null);
+    const resize = () => {
+      const width = host.clientWidth || 1;
+      const height = host.clientHeight || 1;
+      const mobile = width < 768;
+
+      renderer.setPixelRatio(
+        Math.min(window.devicePixelRatio, mobile ? 1.1 : 1.5),
+      );
+      renderer.setSize(width, height, false);
+
+      camera.aspect = width / height;
+      camera.fov = mobile ? 36 : 30;
+      camera.position.z = mobile ? 7.8 : 7.2;
+
+      root.scale.setScalar(mobile ? 0.82 : 1);
+      root.position.x = mobile ? 0 : 0.08;
+
+      camera.updateProjectionMatrix();
     };
 
-    const intersectionObserver =
-      typeof IntersectionObserver !== "undefined"
-        ? new IntersectionObserver(
-            ([entry]) => {
-              visible = entry?.isIntersecting ?? true;
-              if (visible) start();
-              else stop();
-            },
-            { rootMargin: "120px" },
-          )
-        : null;
+    const resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(host);
 
-    intersectionObserver?.observe(host);
+    const intersectionObserver = new IntersectionObserver(
+      ([entry]) => {
+        visible = entry.isIntersecting;
+        syncLoop();
+      },
+      { threshold: 0.05 },
+    );
 
-    const onVisibilityChange = () => {
-      if (visible && document.visibilityState === "visible") start();
-      else stop();
+    intersectionObserver.observe(host);
+
+    const visibilityChange = () => {
+      pageVisible = !document.hidden;
+      syncLoop();
     };
 
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    host.dataset.webgl = "ready";
-    start();
+    document.addEventListener("visibilitychange", visibilityChange);
+
+    resize();
+    syncLoop();
 
     return () => {
-      stop();
-      intersectionObserver?.disconnect();
-      resizeObserver?.disconnect();
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-      window.removeEventListener("resize", resize);
-      host.removeEventListener("pointermove", onPointerMove);
-      host.removeEventListener("pointerleave", onPointerLeave);
+      disposed = true;
 
-      wireGeometry.dispose();
-      wireMaterial.dispose();
-      orbitGeometryA.dispose();
-      orbitMaterialA.dispose();
-      orbitGeometryB.dispose();
-      orbitMaterialB.dispose();
-      mainGeometry.dispose();
-      mainMaterial.dispose();
+      renderer.setAnimationLoop(null);
+      resizeObserver.disconnect();
+      intersectionObserver.disconnect();
+
+      document.removeEventListener("visibilitychange", visibilityChange);
+
+      host.removeEventListener("pointerdown", pointerDown);
+      host.removeEventListener("pointermove", pointerMove);
+      host.removeEventListener("pointerup", pointerUp);
+      host.removeEventListener("pointercancel", pointerUp);
+
+      hero?.classList.remove("hero-experience--fashion-model");
+      visual?.classList.remove("hero-visual--fashion-model");
+
+      if (model) {
+        model.traverse((object) => {
+          if (!(object instanceof THREE.Mesh)) return;
+
+          object.geometry.dispose();
+
+          const materials = Array.isArray(object.material)
+            ? object.material
+            : [object.material];
+
+          materials.forEach((material) => {
+            const mapped = material as THREE.Material & {
+              map?: THREE.Texture;
+              normalMap?: THREE.Texture;
+              roughnessMap?: THREE.Texture;
+              metalnessMap?: THREE.Texture;
+              aoMap?: THREE.Texture;
+              emissiveMap?: THREE.Texture;
+            };
+
+            mapped.map?.dispose();
+            mapped.normalMap?.dispose();
+            mapped.roughnessMap?.dispose();
+            mapped.metalnessMap?.dispose();
+            mapped.aoMap?.dispose();
+            mapped.emissiveMap?.dispose();
+
+            material.dispose();
+          });
+        });
+      }
+
       renderer.dispose();
-      scene.clear();
-
-      delete host.dataset.webgl;
+      renderer.domElement.remove();
     };
   }, []);
 
   return (
-    <div ref={hostRef} className="hero-scene-canvas">
-      <canvas ref={canvasRef} />
-    </div>
+    <>
+      <div
+        ref={hostRef}
+        className="hero-scene-canvas hero-fashion-model"
+        aria-hidden="true"
+      />
+
+      <style jsx global>{`
+        .hero-experience--fashion-model,
+        .hero-visual--fashion-model {
+          background: transparent !important;
+        }
+
+        .hero-experience--fashion-model::before,
+        .hero-experience--fashion-model::after {
+          display: none !important;
+        }
+
+        .hero-experience--fashion-model .hero-art-static,
+        .hero-experience--fashion-model .fashion-rack-static {
+          opacity: 0 !important;
+          visibility: hidden !important;
+          pointer-events: none !important;
+        }
+
+        .hero-visual--fashion-model {
+          border-left-color: transparent !important;
+        }
+
+        .hero-fashion-model canvas {
+          background: transparent !important;
+        }
+      `}</style>
+    </>
   );
 }

@@ -6,14 +6,30 @@ function readSource(relativePath: string) {
   return readFileSync(new URL(relativePath, import.meta.url), "utf8");
 }
 
-describe("rebrand v2 visual experience contracts", () => {
-  it("loads the WebGL enhancement only for wider screens without reduced motion", () => {
+describe("Phase 2 visual experience contracts", () => {
+  it("loads the WebGL enhancement whenever motion is allowed", () => {
     const source = readSource("../components/HeroExperience.tsx");
 
-    assert.match(source, /min-width: 768px/);
     assert.match(source, /prefers-reduced-motion: reduce/);
+    assert.match(source, /setEnhanced\(!reducedMotion\.matches\)/);
     assert.match(source, /dynamic\(\(\) => import\("\.\/HeroScene"\)/);
     assert.match(source, /ssr: false/);
+
+    // Mobile WebGL is now intentional; the old desktop-only gate must stay gone.
+    assert.doesNotMatch(source, /min-width: 768px/);
+  });
+
+  it("uses the local fashion figure GLB instead of the old garment-texture scene", () => {
+    const source = readSource("../components/HeroScene.tsx");
+
+    assert.match(source, /GLTFLoader/);
+    assert.match(source, /\/models\/fashion_figure_base\.glb/);
+    assert.match(source, /new THREE\.Box3\(\)\.setFromObject/);
+    assert.match(source, /targetHeight = 3\.4/);
+    assert.match(source, /fashion-rack-static/);
+
+    assert.doesNotMatch(source, /garmentTextures/);
+    assert.doesNotMatch(source, /TorusKnotGeometry/);
   });
 
   it("pauses the 3D scene when it is not useful and disposes GPU resources", () => {
@@ -23,17 +39,24 @@ describe("rebrand v2 visual experience contracts", () => {
     assert.match(source, /visibilitychange/);
     assert.match(source, /ResizeObserver/);
     assert.match(source, /setAnimationLoop/);
+
+    assert.match(source, /object\.geometry\.dispose\(\)/);
+    assert.match(source, /mapped\.map\?\.dispose\(\)/);
+    assert.match(source, /mapped\.normalMap\?\.dispose\(\)/);
+    assert.match(source, /mapped\.roughnessMap\?\.dispose\(\)/);
+    assert.match(source, /mapped\.metalnessMap\?\.dispose\(\)/);
+    assert.match(source, /material\.dispose\(\)/);
     assert.match(source, /renderer\.dispose\(\)/);
-    assert.match(source, /mainGeometry\.dispose\(\)/);
   });
 
-  it("uses an explicit editorial grid for style cards and a tablet catalog drawer", () => {
-    const source = readSource("../styles/experience.css");
+  it("keeps reduced-motion overrides and the editorial motion primitives", () => {
+    const phase2 = readSource("../styles/phase2.css");
+    const home = readSource("../pages/index.tsx");
 
-    assert.match(source, /grid-template-columns:\s*repeat\(12,\s*minmax\(0,\s*1fr\)\)/);
-    assert.match(source, /min-width:\s*768px\)\s*and\s*\(max-width:\s*1099px/);
-    assert.match(source, /\.filter-panel\.is-open/);
-    assert.match(source, /translateX\(100%\)/);
+    assert.match(home, /className="style-grid"/);
+    assert.match(phase2, /prefers-reduced-motion:\s*reduce/);
+    assert.match(phase2, /\.logo-loop__track/);
+    assert.match(phase2, /\.reveal\.is-prepared/);
   });
 
   it("does not keep the accidental terminal-output file in the repository", () => {

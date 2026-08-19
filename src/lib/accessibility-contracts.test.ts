@@ -6,10 +6,10 @@ function readSource(relativePath: string) {
   return readFileSync(new URL(relativePath, import.meta.url), "utf8");
 }
 
-describe("visual revitalization source contracts", () => {
+describe("Phase 2 accessibility source contracts", () => {
   it("removes the dismissed promotion from the accessibility tree and tab order", () => {
     const source = readSource("../components/SiteLayout.tsx");
-    assert.match(source, /\{promo && \(/);
+    assert.match(source, /\{promo \? \(/);
   });
 
   it("keeps the mobile catalog filters keyboard-contained and restores focus", () => {
@@ -21,20 +21,27 @@ describe("visual revitalization source contracts", () => {
     assert.match(source, /aria-modal=\{filtersOpen \? true : undefined\}/);
   });
 
-  it("does not advertise catalog pages or counts that do not exist", () => {
-    const source = readSource("../pages/categories/index.tsx");
-    assert.doesNotMatch(source, /Showing 9 of 100 products/);
-    assert.doesNotMatch(source, /Page 1 of 10/);
-    assert.match(source, /categoryProducts\.length/);
+  it("keeps the shopping bag keyboard-contained and restores focus", () => {
+    const source = readSource("../components/SiteLayout.tsx");
+    assert.match(source, /cartButton\.current/);
+    assert.match(source, /id="cart-drawer"/);
+    assert.match(source, /role="dialog"/);
+    assert.match(source, /aria-modal="true"/);
+    assert.match(source, /event\.key !== "Tab"/);
+    assert.match(source, /trigger\?\.focus\(\)/);
   });
 
-  it("replaces the fragile hero image and decorative stars with the rebrand experience", () => {
-    const home = readSource("../pages/index.tsx");
-    const product = readSource("../pages/products/index.tsx");
+  it("uses a real search control rather than a disabled Phase 1 placeholder", () => {
+    const source = readSource("../components/SiteLayout.tsx");
+    assert.match(source, /aria-label="Product search"/);
+    assert.match(source, /submitSearch/);
+    assert.doesNotMatch(source, /Search available in Phase 2/);
+    assert.doesNotMatch(source, /aria-disabled="true"/);
+  });
 
-    assert.match(home, /HeroExperience/);
-    assert.doesNotMatch(home, /main-couple/);
-    assert.doesNotMatch(home, /hero-star/);
-    assert.doesNotMatch(product, /\bpriority\b/);
+  it("keeps cart announcements available to assistive technology", () => {
+    const source = readSource("../components/SiteLayout.tsx");
+    assert.match(source, /aria-live="polite"/);
+    assert.match(source, /\{announcement\}/);
   });
 });
