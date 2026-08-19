@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  <a href="https://shop-co-ecommerce-three.vercel.app/">Live Demo</a>
+  <a href="https://shop-co-store.vercel.app/">Live Demo</a>
   ·
   <a href="./CHANGELOG.md">Changelog</a>
   ·
