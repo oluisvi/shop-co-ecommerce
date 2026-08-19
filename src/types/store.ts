@@ -1,16 +1,17 @@
 export type ProductCategory = "T-shirts" | "Shirts" | "Jeans" | "Shorts" | "Polos";
 export type ProductCollection = "New arrivals" | "Top selling" | "Recommended";
-
-export type ProductColor = {
-  name: string;
-  value: string;
+export type ProductColor = { name: string; value: string };
+export type ProductImage = { src: string; alt: string };
+export type ProductVariant = {
+  id: string;
+  sku: string;
+  color?: ProductColor;
+  size?: string;
+  price: number;
+  previousPrice?: number;
+  active: boolean;
+  availableQuantity: number;
 };
-
-export type ProductImage = {
-  src: string;
-  alt: string;
-};
-
 export type Product = {
   id: string;
   slug: string;
@@ -21,18 +22,14 @@ export type Product = {
   discount?: number;
   rating: number;
   category: ProductCategory;
+  categorySlug?: string;
   collection: ProductCollection;
   href: `/products/${string}`;
   description?: string;
   gallery?: ProductImage[];
   colors?: ProductColor[];
   sizes?: string[];
+  variants?: ProductVariant[];
+  defaultVariantId?: string | null;
 };
-
-export type Review = {
-  id: string;
-  author: string;
-  rating: number;
-  quote: string;
-  date?: string;
-};
+export type Review = { id: string; author: string; rating: number; quote: string; date?: string };
