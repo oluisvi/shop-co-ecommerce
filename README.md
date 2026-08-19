@@ -1,8 +1,8 @@
 # SHOP.CO
 
 <p align="center">
-  <strong>Portfolio-grade fashion commerce experience</strong><br />
-  Editorial art direction, interactive 3D, functional local commerce flows and accessibility-first frontend engineering.
+  <strong>Fullstack fashion commerce application</strong><br />
+  Editorial art direction, interactive 3D, persistent catalog, server-controlled inventory, real order creation and an accessibility-first storefront.
 </p>
 
 <p align="center">
@@ -10,197 +10,231 @@
   ·
   <a href="./CHANGELOG.md">Changelog</a>
   ·
-  <a href="#roadmap">Roadmap</a>
+  <a href="./docs/PHASE3_FULLSTACK.md">Phase 3 Architecture</a>
 </p>
 
 [![SHOP.CO live homepage](https://image.thum.io/get/width/1200/crop/760/png/maxAge/24/wait/4/https://shop-co-store.vercel.app/)](https://shop-co-store.vercel.app/)
 
-> The images in this README are live snapshots of the deployed project, so the gallery follows the current production interface instead of documenting an old mockup.
-
 ## Overview
 
-SHOP.CO started as a static fashion storefront and evolved into an **Urban Fashion Journal + functional commerce frontend**.
+SHOP.CO started as a static fashion storefront, evolved into an **Urban Fashion Journal + functional commerce frontend**, and now adds a real commerce backend without replacing the approved interface.
 
-The current version combines a monochrome editorial system with real client-side shopping interactions: local catalog search, filters, sorting, statically generated product pages, persistent cart state and a custom Three.js fashion hero.
+The storefront remains a Next.js 15 Pages Router application with the same monochrome editorial system, custom Three.js fashion hero, product cards, motion language, responsive behavior, newsletter and footer. Phase 3 moves commerce authority behind a NestJS REST API and PostgreSQL database.
 
-The project is intentionally frontend-only at this stage. Backend APIs, real inventory, authentication, order creation and payment processing are reserved for the next commerce phase.
+```text
+Next.js storefront
+      ↓ REST
+NestJS Commerce API
+      ↓ Prisma 7
+PostgreSQL
+      ↓
+Products · Categories · Variants · Inventory · Orders
+```
 
 ## Current status
 
 | Area | Status |
 | --- | --- |
-| Visual system / responsive layout | ✅ Complete |
-| Interactive 3D hero | ✅ Complete |
-| Product catalog | ✅ Functional local dataset |
-| Search / filters / sorting | ✅ Functional |
-| Product detail routes | ✅ Functional |
-| Persistent shopping bag | ✅ Functional |
-| Newsletter UI | ✅ Functional demo validation |
-| Accessibility / reduced motion | ✅ Implemented |
-| Automated verification | ✅ 40 tests passing + typecheck + lint + production build |
-| External catalog API | ⏳ Planned |
-| Checkout / payments | ⏳ Planned |
-| Backend / auth / inventory / orders | ⏳ Future phase |
+| Visual system / responsive layout | ✅ Preserved |
+| Interactive 3D hero | ✅ Preserved |
+| Product catalog | ✅ PostgreSQL-backed |
+| Search / filters / sorting | ✅ API-backed |
+| Product detail routes | ✅ Stable slugs + API data |
+| Persistent guest shopping bag | ✅ `variantId + quantity` in localStorage |
+| Cart reconciliation | ✅ Current price / availability / inventory |
+| Checkout | ✅ Contact + shipping + order creation |
+| Payments | ⏳ Phase 4 |
+| Authentication / customer accounts | ⏳ Phase 4 |
+| Admin tooling | ⏳ Later |
 
-## Experience highlights
+## Fullstack commerce behavior
 
-### Fashion-specific 3D hero
+### Persistent catalog
 
-The home hero uses a local GLB fashion figure rendered with Three.js instead of the original abstract experiment.
+The original 12 SHOP.CO products are migrated into PostgreSQL with the same IDs, slugs, names, prices, compare-at prices, imagery, ratings, categories and collections. Existing product URLs such as `/products/one-life` remain valid.
 
-- local model: `public/models/fashion_figure_base.glb`
-- `GLTFLoader` with automatic bounding-box normalization
-- pointer / touch drag for 360° interaction
-- subtle autonomous motion and inertia
-- responsive camera / DPR tuning for smaller screens
-- `IntersectionObserver` pause when off-screen
-- document visibility pause
-- `ResizeObserver`-driven resizing
-- geometry, texture, material and renderer cleanup
-- `prefers-reduced-motion` fallback
-- static fashion artwork remains available until the model has loaded
+The One Life product keeps its existing gallery, three colors and four sizes. Those options are represented as real sellable variants with deterministic SKUs and independent inventory. Products that did not previously expose options receive one default variant rather than invented product data.
 
-### Functional local commerce
+### Server-authoritative cart and inventory
 
-The interface is no longer a collection of static cards.
+The guest bag is still local and fast, but localStorage is no longer a source of commerce truth.
 
-- 12 normalized products with stable slugs
-- `/products/[slug]` statically generated product routes
-- real search from the header
-- category and maximum-price filters
-- deterministic sorting
-- URL-synchronized catalog state
-- versioned cart persistence with `localStorage`
-- quantity bounds from 1–9
-- add, update, remove, count and subtotal behavior
-- accessible cart drawer with Escape, backdrop close, focus containment and focus restoration
+```text
+shopco-cart-v3
+└── CartLine { variantId, quantity }
+```
 
-The catalog remains intentionally local so the portfolio build stays deterministic. A larger external catalog/API layer is part of the roadmap.
+When the bag changes, the storefront calls the commerce API to reconcile current product data, price, active state and stock. Legacy `shopco-cart-v2` product lines are migrated to each product's default sellable variant when possible.
 
-## Screens
+### Checkout and orders
 
-### Catalog
+`/checkout` collects contact and shipping information, displays the reconciled order summary, validates the form and creates an order.
 
-[![SHOP.CO catalog](https://image.thum.io/get/width/1200/crop/760/png/maxAge/24/wait/4/https://shop-co-store.vercel.app/categories/)](https://shop-co-store.vercel.app/categories/)
+The frontend sends only:
 
-### Product detail
+```json
+{
+  "customer": { "email": "...", "firstName": "...", "lastName": "..." },
+  "shippingAddress": { "addressLine1": "...", "city": "..." },
+  "items": [{ "variantId": "one-life-olive-small", "quantity": 1 }]
+}
+```
 
-[![SHOP.CO product page](https://image.thum.io/get/width/1200/crop/760/png/maxAge/24/wait/4/https://shop-co-store.vercel.app/products/one-life)](https://shop-co-store.vercel.app/products/one-life)
+It does **not** send trusted prices or totals. The API loads the real variant price, validates stock, calculates subtotal/shipping/total, decrements inventory atomically and stores immutable order-item snapshots inside one database transaction.
 
-## Design direction
-
-The visual system is built around a fashion-editorial language rather than a generic dashboard or template aesthetic.
-
-- monochrome foundation with product photography carrying most of the color
-- Integral CF display typography + Satoshi interface/body typography
-- editorial serif accents for selected headings
-- large type, rules, whitespace and asymmetric composition
-- subtle tactile microinteractions instead of heavy animation everywhere
-- Uiverse-inspired control feedback
-- local React Bits-inspired primitives such as `Reveal`, `MagneticLink` and `LogoLoop`
-- Motion Sites-inspired pacing and art direction
-- responsive layouts designed from small mobile screens through wide desktop
-
-The newsletter and footer were also rebuilt as editorial surfaces, with stronger typography, responsive form geometry and magnetic navigation interactions.
+Orders receive a public number such as `SHOP-000123` and begin in `CREATED`. Phase 3 does not pretend payment happened.
 
 ## Tech stack
 
-- **Next.js 15.5** — Pages Router, static generation and optimized routing
-- **React 19**
-- **TypeScript 5**
-- **Three.js 0.185**
-- **CSS architecture** — `globals.css`, `fixes.css`, `experience.css`, `phase2.css`, `polish.css`
-- **next/image**
-- **next/font/local**
-- **React Context** for the commerce state
-- **Node test runner** for domain and source-contract tests
-- **ESLint** + TypeScript validation
-- **Vercel** deployment
+### Storefront
 
-No Redux, GSAP, Framer Motion, Lenis or route-wide WebGL runtime is required by the current experience.
+- Next.js 15.5 — Pages Router
+- React 19
+- TypeScript 5
+- Three.js 0.185
+- CSS layers: `globals.css`, `fixes.css`, `experience.css`, `phase2.css`, `polish.css`, `phase3.css`
+- React Context for guest cart state
+- Node test runner
+- Vercel
 
-## Architecture
+### Commerce API
 
-```text
-src/
-├── components/
-│   ├── commerce + navigation
-│   ├── editorial UI primitives
-│   ├── HeroExperience.tsx
-│   ├── HeroScene.tsx
-│   ├── Newsletter.tsx
-│   └── Footer.tsx
-├── data/
-│   ├── catalog.ts
-│   └── reviews.ts
-├── lib/
-│   ├── catalog helpers
-│   ├── cart domain + persistence
-│   ├── validation
-│   └── regression / accessibility contracts
-├── pages/
-│   ├── index.tsx
-│   ├── categories.tsx
-│   └── products/[slug].tsx
-├── styles/
-└── types/
+- NestJS 11
+- TypeScript
+- Prisma ORM 7
+- `@prisma/adapter-pg`
+- PostgreSQL
+- class-validator / class-transformer
+- Helmet
+- Jest
 
-public/
-├── assets/
-└── models/
-    └── fashion_figure_base.glb
-```
+No GraphQL, Redis, queues, Kafka, event sourcing, CQRS or microservices are required for this phase.
 
-### Commerce state
+## Repository architecture
 
 ```text
-CommerceProvider
-└── localStorage: shopco-cart-v2
-    └── CartLine { productId, quantity }
+.
+├── src/                         # existing Next.js storefront
+│   ├── components/
+│   ├── context/
+│   │   └── CommerceContext.tsx
+│   ├── data/                    # original catalog retained as reference/tests
+│   ├── lib/
+│   │   ├── api/
+│   │   ├── cart.ts
+│   │   ├── cart-reconciliation.ts
+│   │   └── checkout.ts
+│   ├── pages/
+│   │   ├── index.tsx
+│   │   ├── categories/index.tsx
+│   │   ├── products/[slug].tsx
+│   │   └── checkout.tsx
+│   ├── styles/
+│   └── types/
+├── server/
+│   ├── prisma/
+│   │   ├── migrations/
+│   │   ├── schema.prisma
+│   │   ├── catalog-seed-data.ts
+│   │   └── seed.ts
+│   └── src/
+│       ├── common/
+│       ├── config/
+│       ├── prisma/
+│       └── modules/
+│           ├── products/
+│           ├── categories/
+│           └── orders/
+└── docs/PHASE3_FULLSTACK.md
 ```
 
-Cart calculations and persistence parsing are kept in pure helpers so the domain can later be moved behind a real commerce API without rewriting every UI component.
+## REST API
 
-## Accessibility and performance
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| GET | `/products` | search, category filter, sort, max price, pagination |
+| GET | `/products/:slug` | product + images + variants + available stock |
+| POST | `/products/reconcile` | validate guest cart against current commerce state |
+| GET | `/categories` | category facets + price range |
+| POST | `/orders` | transactional inventory validation + order creation |
 
-Accessibility is treated as part of the UI architecture rather than a final visual patch.
+Errors use a stable contract:
 
-- semantic landmarks and route-level headings
-- visible focus states and skip navigation
-- descriptive product images
-- labeled search, newsletter and catalog controls
-- focus containment / Escape / restoration for modal drawers
-- live cart announcements for assistive technology
-- body scroll locking while drawers are active
-- `prefers-reduced-motion` support for CSS and WebGL behavior
+```json
+{
+  "statusCode": 404,
+  "code": "PRODUCT_NOT_FOUND",
+  "message": "Product not found"
+}
+```
 
-Performance work includes lazy client-only Three.js loading, capped pixel ratio, paused rendering when the hero is not useful, static route generation, local assets and cleanup of GPU resources.
+## Database and migrations
 
-## Verification
+Prisma is configured in `server/prisma.config.ts`; the PostgreSQL schema is versioned in `server/prisma/migrations`.
 
-The current frontend milestone was closed with all quality gates green:
+Development:
 
 ```bash
-npm test
-# 40 tests · 40 pass · 0 fail
-
-npm run typecheck
-npm run lint
-npm run build
+cd server
+npm run prisma:migrate:dev
+npm run prisma:seed
 ```
 
-The production build statically generates the homepage, catalog and all product detail paths.
+Production:
+
+```bash
+cd server
+npm run prisma:migrate:deploy
+```
+
+`prisma db push` is not the production deployment strategy.
+
+## Environment variables
+
+Root `.env.local`:
+
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:4000
+```
+
+`server/.env`:
+
+```bash
+DATABASE_URL=postgresql://...
+PORT=4000
+FRONTEND_URL=http://localhost:3000
+NODE_ENV=development
+```
+
+Examples are committed; real `.env` files remain ignored.
 
 ## Run locally
 
+**Requirements:** Node.js 20+ and PostgreSQL.
+
+Backend:
+
 ```bash
-npm ci
+cd server
+npm install
+npm run prisma:generate
+npm run prisma:migrate:dev
+npm run prisma:seed
+npm run dev
+```
+
+Frontend, in a second terminal:
+
+```bash
+npm install
 npm run dev
 ```
 
 Open `http://localhost:3000`.
 
-Before shipping changes:
+## Verification
+
+Frontend gates:
 
 ```bash
 npm test
@@ -209,59 +243,73 @@ npm run lint
 npm run build
 ```
 
-## Project evolution
+Backend gates:
 
-### Phase 1 — Visual revitalization
+```bash
+cd server
+npm test
+npm run typecheck
+npm run lint
+npm run build
+npx prisma validate
+npx prisma generate
+```
 
-Rebuilt the original storefront into a stronger fashion/editorial experience with a responsive design system, accessibility improvements, typography, motion direction and the initial Three.js enhancement.
+Migration and seed should also be executed against a disposable PostgreSQL database before production deployment.
 
-### Phase 2 — Functional fashion frontend
+## Security foundation
 
-Converted the static storefront into a working local commerce experience and completed the current portfolio presentation.
+- environment validation fails fast
+- Helmet before routes
+- strict configured CORS
+- 100 KB body limit
+- DTO whitelist with unknown fields rejected
+- no client-authoritative prices
+- server-side product/variant/inventory validation
+- atomic order + inventory transaction
+- structured errors without production stack traces
+- logs avoid secrets and full sensitive payloads
 
-Major additions include:
+## Accessibility and performance
 
-- deep product routes
-- normalized catalog domain
-- real search / filters / sort
-- persistent cart
-- accessible cart drawer
-- 3D GLB fashion figure
-- mobile WebGL support when motion is allowed
-- reviews carousel
-- final newsletter / footer polish
-- improved typography and responsive QA
+Phase 3 keeps the existing accessibility and WebGL performance work: semantic landmarks/headings, skip navigation, visible focus states, drawer focus containment, Escape/backdrop behavior, live cart announcements, reduced-motion support, capped WebGL DPR, visibility/intersection pausing and GPU cleanup.
 
-See [`CHANGELOG.md`](./CHANGELOG.md) for the condensed release history.
+Checkout adds labels, associated inline errors, a focusable error summary, keyboard navigation, `aria-live`/status messaging and clear inventory failure states.
+
+## Deployment
+
+1. provision managed PostgreSQL;
+2. deploy the NestJS API with `DATABASE_URL` and `FRONTEND_URL`;
+3. run `prisma migrate deploy` and seed;
+4. expose the API from a normal Node.js hosting platform;
+5. set Vercel `NEXT_PUBLIC_API_URL`;
+6. redeploy the Next.js storefront.
+
+The backend uses `DATABASE_URL` and is not coupled to a specific PostgreSQL or Node host.
 
 ## Roadmap
 
-The next milestone focuses on the two deliberately deferred, heavier commerce areas.
+### Phase 1 — Visual revitalization
 
-### Phase 3A — Catalog expansion / API
+Fashion-editorial redesign, responsive system, accessibility and Three.js direction.
 
-- evaluate a stable fashion-product data source
-- normalize external products into the existing `Product` contract
-- expand images, categories and product variety
-- preserve portfolio stability instead of coupling the UI directly to an unreliable remote API
+### Phase 2 — Functional frontend
 
-### Phase 3B — Checkout
+Search, filters, sorting, stable product routes, persistent guest cart, 3D GLB fashion figure and final portfolio polish.
 
-- complete checkout flow
-- contact and shipping information
-- delivery selection
-- order summary
-- validation and error states
-- payment integration, likely starting with a test-mode provider
+### Phase 3 — Fullstack commerce foundation
 
-### Later
+PostgreSQL catalog, variants, inventory, orders, API-backed storefront, cart reconciliation and checkout without payment.
 
-- backend/API
-- database
+### Phase 4 — Payments + customer accounts
+
+Planned, not implemented here:
+
+- Stripe/payment provider
+- payment intents or checkout sessions
+- webhooks and payment confirmation
 - authentication
-- real inventory
-- orders
-- server-backed newsletter
+- customer account / order history
 - transactional email
 - admin tooling
 
@@ -270,10 +318,3 @@ The next milestone focuses on the two deliberately deferred, heavier commerce ar
 - Design and development: **Luis Henrique Vieira Barros**
 - 3D fashion figure: **Tiko — CC BY 4.0**
 - Product imagery and fashion assets are used as part of this portfolio demonstration storefront.
-
----
-
-<p align="center">
-  <strong>SHOP.CO</strong><br />
-  Built as a fashion interface, engineered as a frontend system.
-</p>

@@ -1,7 +1,6 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
 /node_modules
+/server/node_modules
 /.pnp
 .pnp.*
 .yarn/*
@@ -12,10 +11,15 @@
 
 # testing
 /coverage
+/server/coverage
 
 # next.js
 /.next/
 /out/
+
+# backend build/generated
+/server/dist/
+/server/src/generated/prisma/
 
 # production
 /build
@@ -31,8 +35,10 @@ yarn-error.log*
 .pnpm-debug.log*
 .codex-server*.log
 
-# env files (can opt-in for committing if needed)
+# env files
 .env*
+!.env.example
+!server/.env.example
 
 # vercel
 .vercel
