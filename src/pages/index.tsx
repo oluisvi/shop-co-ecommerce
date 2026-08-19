@@ -3,9 +3,12 @@ import Link from "next/link";
 import SiteHead from "@/components/SiteHead";
 import SiteLayout from "@/components/SiteLayout";
 import ProductCard from "@/components/ProductCard";
-import Rating from "@/components/Rating";
 import SectionHeader from "@/components/SectionHeader";
 import HeroExperience from "@/components/HeroExperience";
+import LogoLoop from "@/components/LogoLoop";
+import MagneticLink from "@/components/MagneticLink";
+import Reveal from "@/components/Reveal";
+import ReviewsCarousel from "@/components/ReviewsCarousel";
 import { ArrowIcon } from "@/components/Icons";
 import { newArrivals, topSelling } from "@/data/catalog";
 import { homeReviews } from "@/data/reviews";
@@ -30,15 +33,15 @@ export default function Home() {
         <section className="hero">
           <div className="container hero-grid">
             <div className="hero-copy">
-              <p className="issue-label hero-step">SHOP.CO Journal / Issue 01</p>
+              <p className="issue-label hero-step">SHOP.CO Journal / Issue 02</p>
               <h1 className="hero-step">Find clothes that match your style.</h1>
               <p className="hero-intro hero-step">
                 A considered edit of expressive everyday pieces—built for the way you move,
                 meet, and make an entrance.
               </p>
-              <Link href="#new-arrivals" className="button button--dark hero-step">
+              <MagneticLink href="#new-arrivals" className="button button--dark hero-step">
                 Shop the latest edit <ArrowIcon />
-              </Link>
+              </MagneticLink>
               <dl className="hero-stats hero-step">
                 <div>
                   <dt>200+</dt>
@@ -58,26 +61,16 @@ export default function Home() {
             <div className="hero-visual hero-visual--3d hero-step">
               <HeroExperience />
               <span className="hero-caption" aria-hidden="true">
-                Interactive / Editorial
+                Digital fashion rack
                 <br />
-                Monochrome / 001
+                Local garments / 003
               </span>
             </div>
           </div>
         </section>
 
         <section className="brand-strip" aria-label="Featured brands">
-          <div className="container brand-list">
-            {brands.map((brand) => (
-              <Image
-                key={brand}
-                src={`/assets/${brand}.svg`}
-                alt={brand === "calvin-klein" ? "Calvin Klein" : brand[0].toUpperCase() + brand.slice(1)}
-                width={150}
-                height={42}
-              />
-            ))}
-          </div>
+          <LogoLoop brands={brands} />
         </section>
 
         <ProductSection
@@ -98,43 +91,36 @@ export default function Home() {
 
         <section id="dress-styles" className="journal-section style-section">
           <div className="container">
-            <SectionHeader index="03" label="The style index" title="Browse by dress style" />
-            <div className="style-grid">
-              {styles.map((style) => (
-                <Link
-                  className={`style-card ${style.className}`}
-                  key={style.name}
-                  href="/categories"
-                >
-                  <Image
-                    src={style.image}
-                    alt={`${style.name} clothing style`}
-                    fill
-                    sizes="(max-width: 767px) 100vw, (max-width: 1099px) 50vw, 58vw"
-                  />
-                  <span>{style.name}</span>
-                  <ArrowIcon />
-                </Link>
-              ))}
-            </div>
+            <Reveal>
+              <SectionHeader index="03" label="The style index" title="Browse by dress style" />
+              <div className="style-grid">
+                {styles.map((style) => (
+                  <Link
+                    className={`style-card ${style.className}`}
+                    key={style.name}
+                    href="/categories"
+                  >
+                    <Image
+                      src={style.image}
+                      alt={`${style.name} clothing style`}
+                      fill
+                      sizes="(max-width: 767px) 100vw, (max-width: 1099px) 50vw, 58vw"
+                    />
+                    <span>{style.name}</span>
+                    <ArrowIcon />
+                  </Link>
+                ))}
+              </div>
+            </Reveal>
           </div>
         </section>
 
         <section className="journal-section reviews-section">
           <div className="container">
-            <SectionHeader index="04" label="Reader notes" title="Our happy customers" />
-            <div className="reviews-grid">
-              {homeReviews.map((review) => (
-                <article className="review-card" key={review.id}>
-                  <Rating value={review.rating} />
-                  <blockquote>“{review.quote}”</blockquote>
-                  <footer>
-                    <strong>{review.author}</strong>
-                    <span>Verified customer</span>
-                  </footer>
-                </article>
-              ))}
-            </div>
+            <Reveal>
+              <SectionHeader index="04" label="Reader notes" title="Our happy customers" />
+              <ReviewsCarousel reviews={homeReviews} />
+            </Reveal>
           </div>
         </section>
       </SiteLayout>
@@ -163,15 +149,17 @@ function ProductSection({
       className={`journal-section product-section ${dark ? "product-section--dark" : ""}`}
     >
       <div className="container">
-        <SectionHeader index={index} label={label} title={title} />
-        <div className="product-grid">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-        <Link className="text-link" href="/categories">
-          View the full edit <ArrowIcon />
-        </Link>
+        <Reveal>
+          <SectionHeader index={index} label={label} title={title} />
+          <div className="product-grid">
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+          <Link className="text-link" href="/categories">
+            View the full edit <ArrowIcon />
+          </Link>
+        </Reveal>
       </div>
     </section>
   );

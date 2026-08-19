@@ -3,12 +3,16 @@ import assert from "node:assert/strict";
 import { allProducts, newArrivals, topSelling } from "./catalog.ts";
 
 describe("static catalog", () => {
-  it("keeps identifiers unique", () => {
+  it("keeps identifiers and slugs unique", () => {
     assert.equal(new Set(allProducts.map((product) => product.id)).size, allProducts.length);
+    assert.equal(new Set(allProducts.map((product) => product.slug)).size, allProducts.length);
   });
 
-  it("uses only the existing demonstration product route", () => {
-    assert.equal(allProducts.every((product) => product.href === "/products"), true);
+  it("deep-links every product to its own route", () => {
+    assert.equal(
+      allProducts.every((product) => product.href === `/products/${product.slug}`),
+      true,
+    );
   });
 
   it("preserves four products in each home collection", () => {
@@ -28,5 +32,10 @@ describe("static catalog", () => {
       );
       assert.equal(product.discount, expected, product.name);
     }
+  });
+
+  it("uses only category metadata represented by the actual products", () => {
+    const allowed = new Set(["T-shirts", "Shirts", "Jeans", "Shorts", "Polos"]);
+    assert.equal(allProducts.every((product) => allowed.has(product.category)), true);
   });
 });

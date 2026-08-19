@@ -1,8 +1,12 @@
 import "@/styles/globals.css";
 import "@/styles/fixes.css";
 import "@/styles/experience.css";
+import "@/styles/phase2.css";
+import "@/styles/polish.css";
 import type { AppProps } from "next/app";
+import { Bodoni_Moda } from "next/font/google";
 import localFont from "next/font/local";
+import { CommerceProvider } from "@/context/CommerceContext";
 
 const satoshi = localFont({
   src: "../styles/Fontes/Satoshi/Satoshi-Variable.woff2",
@@ -19,10 +23,19 @@ const integral = localFont({
   fallback: ["Arial Black", "sans-serif"],
 });
 
+const bodoni = Bodoni_Moda({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  variable: "--font-bodoni",
+  display: "swap",
+});
+
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <div className={`${satoshi.variable} ${integral.variable}`}>
-      <Component {...pageProps} />
-    </div>
+    <CommerceProvider>
+      <div className={`${satoshi.variable} ${integral.variable} ${bodoni.variable}`}>
+        <Component {...pageProps} />
+      </div>
+    </CommerceProvider>
   );
 }
