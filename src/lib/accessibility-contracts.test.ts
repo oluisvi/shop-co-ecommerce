@@ -28,10 +28,13 @@ describe("visual revitalization source contracts", () => {
     assert.match(source, /categoryProducts\.length/);
   });
 
-  it("reserves Next Image priority for the home hero", () => {
+  it("replaces the fragile hero image and decorative stars with the rebrand experience", () => {
     const home = readSource("../pages/index.tsx");
     const product = readSource("../pages/products/index.tsx");
-    assert.match(home, /fill priority/);
+
+    assert.match(home, /HeroExperience/);
+    assert.doesNotMatch(home, /main-couple/);
+    assert.doesNotMatch(home, /hero-star/);
     assert.doesNotMatch(product, /\bpriority\b/);
   });
 });

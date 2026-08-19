@@ -13,6 +13,21 @@ export default function Categories() {
   const closeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 1100px)");
+
+    const syncLayout = () => {
+      if (desktop.matches) setFiltersOpen(false);
+    };
+
+    syncLayout();
+    desktop.addEventListener("change", syncLayout);
+
+    return () => {
+      desktop.removeEventListener("change", syncLayout);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!filtersOpen) return;
 
     const previousOverflow = document.body.style.overflow;
@@ -135,7 +150,9 @@ export default function Categories() {
                   Sort by
                   <select
                     defaultValue="popular"
-                    onChange={() => setFeedback("Sorting is a preview and does not reorder products yet.")}
+                    onChange={() =>
+                      setFeedback("Sorting is a preview and does not reorder products yet.")
+                    }
                   >
                     <option value="popular">Most popular</option>
                     <option value="new">Newest</option>

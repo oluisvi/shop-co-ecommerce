@@ -1,0 +1,550 @@
+/*
+ * SHOP.CO visual experience layer.
+ * Intentional Phase 1 styles for the rebranded hero and responsive catalog geometry.
+ * Loaded after globals.css/fixes.css so these rules own the final layout at each breakpoint.
+ */
+
+/* ---------- Home hero: static editorial fallback + optional Three.js enhancement ---------- */
+
+.hero-visual--3d {
+  isolation: isolate;
+  min-width: 0;
+  background: #101010;
+  border-left: 1px solid #000;
+}
+
+.hero-experience {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  color: #fff;
+  background: #101010;
+}
+
+.hero-experience::before,
+.hero-experience::after {
+  position: absolute;
+  z-index: 0;
+  content: "";
+  pointer-events: none;
+}
+
+.hero-experience::before {
+  inset: 7% 8%;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 50%;
+  transform: rotate(-12deg);
+}
+
+.hero-experience::after {
+  top: 50%;
+  left: 50%;
+  width: min(68%, 440px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.hero-art-static,
+.hero-scene-canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.hero-art-static {
+  z-index: 1;
+  transition: opacity var(--slow) var(--ease);
+}
+
+.hero-experience.is-enhanced .hero-art-static {
+  opacity: 0.18;
+}
+
+.hero-art-core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(180px, 48%, 340px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 46% 54% 58% 42% / 42% 45% 55% 58%;
+  transform: translate(-50%, -50%) rotate(24deg);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.7);
+}
+
+.hero-art-core::before,
+.hero-art-core::after {
+  position: absolute;
+  content: "";
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: inherit;
+}
+
+.hero-art-core::before {
+  inset: 13%;
+  transform: rotate(26deg);
+}
+
+.hero-art-core::after {
+  inset: 28%;
+  transform: rotate(-38deg);
+}
+
+.hero-art-orbit {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 50%;
+  transform-origin: center;
+}
+
+.hero-art-orbit--a {
+  width: 74%;
+  height: 34%;
+  transform: translate(-50%, -50%) rotate(31deg);
+}
+
+.hero-art-orbit--b {
+  width: 48%;
+  height: 78%;
+  transform: translate(-50%, -50%) rotate(-41deg);
+}
+
+.hero-art-line {
+  position: absolute;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  transform-origin: left center;
+}
+
+.hero-art-line--a {
+  top: 22%;
+  left: 12%;
+  width: 44%;
+  transform: rotate(18deg);
+}
+
+.hero-art-line--b {
+  right: 9%;
+  bottom: 22%;
+  width: 48%;
+  transform: rotate(-22deg);
+}
+
+.hero-scene-canvas {
+  z-index: 2;
+  opacity: 0;
+  transition: opacity var(--slow) var(--ease);
+}
+
+.hero-experience.is-enhanced .hero-scene-canvas[data-webgl="ready"],
+.hero-experience.is-enhanced .hero-scene-canvas {
+  opacity: 1;
+}
+
+.hero-scene-canvas canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hero-experience-meta {
+  position: absolute;
+  z-index: 4;
+  top: 1.15rem;
+  right: 1.15rem;
+  left: 1.15rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hero-visual--3d .hero-caption {
+  z-index: 5;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(0, 0, 0, 0.86);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hero-visual--3d {
+    cursor: crosshair;
+  }
+}
+
+/* ---------- Home: editorial dress-style mosaic ---------- */
+
+.style-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows:
+    clamp(280px, 28vw, 400px)
+    clamp(250px, 25vw, 360px);
+  gap: clamp(0.8rem, 1.4vw, 1.15rem);
+}
+
+.style-card {
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.style-card:nth-child(1) {
+  grid-column: span 7;
+}
+
+.style-card:nth-child(2) {
+  grid-column: span 5;
+}
+
+.style-card:nth-child(3) {
+  grid-column: span 5;
+}
+
+.style-card:nth-child(4) {
+  grid-column: span 7;
+}
+
+.style-card--wide {
+  min-width: 0;
+}
+
+.style-card::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.12) 0%,
+    rgba(255, 255, 255, 0) 38%,
+    rgba(0, 0, 0, 0.08) 100%
+  );
+  pointer-events: none;
+}
+
+.style-card > span,
+.style-card > svg {
+  z-index: 2;
+}
+
+.style-card > span {
+  max-width: calc(100% - 5rem);
+  text-wrap: balance;
+}
+
+.style-card > svg {
+  display: grid;
+  width: 2.9rem;
+  height: 2.9rem;
+  padding: 0.82rem;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(3px);
+  transition:
+    transform var(--fast) var(--ease),
+    background var(--fast);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .style-card:hover > svg {
+    background: #fff;
+    transform: translate(0.18rem, -0.18rem);
+  }
+}
+
+/* ---------- Catalog geometry ---------- */
+
+.catalog-results {
+  min-width: 0;
+}
+
+.product-grid--catalog .product-card,
+.product-grid--catalog .product-image,
+.product-grid--catalog .product-meta {
+  min-width: 0;
+}
+
+@media (min-width: 1400px) {
+  .header-search {
+    max-width: 760px;
+  }
+
+  .header-actions {
+    margin-left: auto;
+  }
+}
+
+@media (min-width: 1100px) {
+  .catalog-layout {
+    grid-template-columns: minmax(230px, 260px) minmax(0, 1fr);
+    gap: clamp(2.75rem, 4.2vw, 4.75rem);
+  }
+
+  .filter-panel {
+    position: sticky;
+    top: 6.5rem;
+    width: auto;
+    max-height: calc(100vh - 8rem);
+    overflow-y: auto;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: none;
+  }
+
+  .filter-trigger,
+  .filter-close,
+  .filter-backdrop {
+    display: none;
+  }
+
+  .product-grid--catalog {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1rem, 1.7vw, 1.6rem);
+    row-gap: clamp(2.5rem, 4vw, 3.75rem);
+  }
+
+    .header-inner {
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+    padding-left: max(
+      var(--gutter),
+      calc((100vw - var(--container)) / 2)
+    );
+    padding-right: var(--gutter);
+  }
+
+  /*
+   * Hero copy remains aligned with the rest of the site,
+   * while the 3D panel becomes full-bleed to the right.
+   */
+  .hero-grid {
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+    padding-left: max(
+      var(--gutter),
+      calc((100vw - var(--container)) / 2)
+    );
+    grid-template-columns: minmax(0, 590px) minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1099px) {
+  .hero-grid {
+    grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+  }
+
+  .hero-copy {
+    padding-right: clamp(1.5rem, 3vw, 2.5rem);
+  }
+
+  .hero-visual--3d {
+    min-height: 560px;
+  }
+
+  .style-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, clamp(250px, 34vw, 340px));
+  }
+
+  .style-card:nth-child(n) {
+    grid-column: auto;
+  }
+
+  .catalog-layout {
+    display: block;
+  }
+
+  .filter-trigger {
+    display: inline-flex;
+    margin-bottom: 1.5rem;
+  }
+
+  .filter-trigger svg {
+    fill: none;
+    stroke: currentColor;
+  }
+
+  .filter-panel {
+    position: fixed;
+    inset: 0 0 0 auto;
+    z-index: 50;
+    display: block;
+    width: min(46vw, 430px);
+    max-height: none;
+    padding: 1.25rem 1.5rem 2rem;
+    overflow-y: auto;
+    background: #fff;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(100%);
+    transition:
+      transform var(--base) var(--ease),
+      opacity var(--base),
+      visibility var(--base);
+  }
+
+  .filter-panel.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: none;
+  }
+
+  .filter-close {
+    display: inline-grid;
+  }
+
+  .filter-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    display: block;
+    background: rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      opacity var(--base),
+      visibility var(--base);
+  }
+
+  .filter-backdrop.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .product-grid--catalog {
+    display: grid;
+    width: auto;
+    margin: 0;
+    padding: 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1rem, 2vw, 1.5rem);
+    row-gap: 2.75rem;
+    overflow: visible;
+  }
+
+  .product-grid--catalog .product-card {
+    width: auto;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 899px) {
+  .product-grid--catalog {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .catalog-toolbar {
+    align-items: flex-end;
+  }
+}
+
+@media (max-width: 767px) {
+  .hero-visual--3d {
+    min-height: clamp(360px, 108vw, 480px);
+    border-top: 1px solid #000;
+    border-left: 0;
+  }
+
+  .hero-experience-meta {
+    top: 0.9rem;
+    right: 0.9rem;
+    left: 0.9rem;
+  }
+
+  .hero-art-core {
+    width: min(54vw, 250px);
+  }
+
+  .hero-art-orbit--a {
+    width: 72%;
+  }
+
+  .hero-art-orbit--b {
+    height: 70%;
+  }
+
+  .style-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+    grid-auto-rows: clamp(230px, 72vw, 300px);
+  }
+
+  .style-card:nth-child(n) {
+    grid-column: auto;
+  }
+
+  .style-card > svg {
+    width: 2.65rem;
+    height: 2.65rem;
+    padding: 0.74rem;
+  }
+
+  .filter-panel {
+    transform: translateX(100%);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      transform var(--base) var(--ease),
+      opacity var(--base),
+      visibility var(--base);
+  }
+
+  .filter-panel.is-open {
+    transform: none;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .filter-backdrop {
+    pointer-events: none;
+  }
+
+  .filter-backdrop.is-open {
+    pointer-events: auto;
+  }
+}
+
+@media (max-width: 430px) {
+  .hero-experience-meta {
+    font-size: 0.56rem;
+  }
+
+  .hero-experience-meta span:last-child {
+    text-align: right;
+  }
+
+  .hero-visual--3d .hero-caption {
+    right: 0.9rem;
+    bottom: 0.9rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-art-static,
+  .hero-scene-canvas,
+  .style-card > svg {
+    transition: none;
+  }
+
+  .hero-visual--3d {
+    cursor: default;
+  }
+}
