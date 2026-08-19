@@ -1,4 +1,4 @@
-# SHOP.CO
+﻿# SHOP.CO
 
 <p align="center">
   <strong>Portfolio-grade fashion commerce experience</strong><br />
@@ -6,14 +6,14 @@
 </p>
 
 <p align="center">
-  <a href="https://shop-co-ecommerce-three.vercel.app/">Live Demo</a>
-  ·
+  <a href="https://shop-co-store.vercel.app/">Live Demo</a>
+  Â·
   <a href="./CHANGELOG.md">Changelog</a>
-  ·
+  Â·
   <a href="#roadmap">Roadmap</a>
 </p>
 
-[![SHOP.CO live homepage](https://image.thum.io/get/width/1200/crop/760/png/maxAge/24/wait/4/https://shop-co-ecommerce-three.vercel.app/)](https://shop-co-ecommerce-three.vercel.app/)
+[![SHOP.CO live homepage](https://image.thum.io/get/width/1200/crop/760/png/maxAge/24/wait/4/https://shop-co-store.vercel.app/)](https://shop-co-store.vercel.app/)
 
 > The images in this README are live snapshots of the deployed project, so the gallery follows the current production interface instead of documenting an old mockup.
 
@@ -29,18 +29,18 @@ The project is intentionally frontend-only at this stage. Backend APIs, real inv
 
 | Area | Status |
 | --- | --- |
-| Visual system / responsive layout | ✅ Complete |
-| Interactive 3D hero | ✅ Complete |
-| Product catalog | ✅ Functional local dataset |
-| Search / filters / sorting | ✅ Functional |
-| Product detail routes | ✅ Functional |
-| Persistent shopping bag | ✅ Functional |
-| Newsletter UI | ✅ Functional demo validation |
-| Accessibility / reduced motion | ✅ Implemented |
-| Automated verification | ✅ 40 tests passing + typecheck + lint + production build |
-| External catalog API | ⏳ Planned |
-| Checkout / payments | ⏳ Planned |
-| Backend / auth / inventory / orders | ⏳ Future phase |
+| Visual system / responsive layout | âœ… Complete |
+| Interactive 3D hero | âœ… Complete |
+| Product catalog | âœ… Functional local dataset |
+| Search / filters / sorting | âœ… Functional |
+| Product detail routes | âœ… Functional |
+| Persistent shopping bag | âœ… Functional |
+| Newsletter UI | âœ… Functional demo validation |
+| Accessibility / reduced motion | âœ… Implemented |
+| Automated verification | âœ… 40 tests passing + typecheck + lint + production build |
+| External catalog API | â³ Planned |
+| Checkout / payments | â³ Planned |
+| Backend / auth / inventory / orders | â³ Future phase |
 
 ## Experience highlights
 
@@ -50,7 +50,7 @@ The home hero uses a local GLB fashion figure rendered with Three.js instead of 
 
 - local model: `public/models/fashion_figure_base.glb`
 - `GLTFLoader` with automatic bounding-box normalization
-- pointer / touch drag for 360° interaction
+- pointer / touch drag for 360Â° interaction
 - subtle autonomous motion and inertia
 - responsive camera / DPR tuning for smaller screens
 - `IntersectionObserver` pause when off-screen
@@ -71,7 +71,7 @@ The interface is no longer a collection of static cards.
 - deterministic sorting
 - URL-synchronized catalog state
 - versioned cart persistence with `localStorage`
-- quantity bounds from 1–9
+- quantity bounds from 1â€“9
 - add, update, remove, count and subtotal behavior
 - accessible cart drawer with Escape, backdrop close, focus containment and focus restoration
 
@@ -81,11 +81,11 @@ The catalog remains intentionally local so the portfolio build stays determinist
 
 ### Catalog
 
-[![SHOP.CO catalog](https://image.thum.io/get/width/1200/crop/760/png/maxAge/24/wait/4/https://shop-co-ecommerce-three.vercel.app/categories)](https://shop-co-ecommerce-three.vercel.app/categories)
+[![SHOP.CO catalog](https://image.thum.io/get/width/1200/crop/760/png/maxAge/24/wait/4/https://shop-co-store.vercel.app/categories)](https://shop-co-store.vercel.app/categories)
 
 ### Product detail
 
-[![SHOP.CO product page](https://image.thum.io/get/width/1200/crop/760/png/maxAge/24/wait/4/https://shop-co-ecommerce-three.vercel.app/products/one-life)](https://shop-co-ecommerce-three.vercel.app/products/one-life)
+[![SHOP.CO product page](https://image.thum.io/get/width/1200/crop/760/png/maxAge/24/wait/4/https://shop-co-store.vercel.app/products/one-life)](https://shop-co-store.vercel.app/products/one-life)
 
 ## Design direction
 
@@ -105,11 +105,11 @@ The newsletter and footer were also rebuilt as editorial surfaces, with stronger
 
 ## Tech stack
 
-- **Next.js 15.5** — Pages Router, static generation and optimized routing
+- **Next.js 15.5** â€” Pages Router, static generation and optimized routing
 - **React 19**
 - **TypeScript 5**
 - **Three.js 0.185**
-- **CSS architecture** — `globals.css`, `fixes.css`, `experience.css`, `phase2.css`, `polish.css`
+- **CSS architecture** â€” `globals.css`, `fixes.css`, `experience.css`, `phase2.css`, `polish.css`
 - **next/image**
 - **next/font/local**
 - **React Context** for the commerce state
@@ -123,40 +123,40 @@ No Redux, GSAP, Framer Motion, Lenis or route-wide WebGL runtime is required by 
 
 ```text
 src/
-├── components/
-│   ├── commerce + navigation
-│   ├── editorial UI primitives
-│   ├── HeroExperience.tsx
-│   ├── HeroScene.tsx
-│   ├── Newsletter.tsx
-│   └── Footer.tsx
-├── data/
-│   ├── catalog.ts
-│   └── reviews.ts
-├── lib/
-│   ├── catalog helpers
-│   ├── cart domain + persistence
-│   ├── validation
-│   └── regression / accessibility contracts
-├── pages/
-│   ├── index.tsx
-│   ├── categories.tsx
-│   └── products/[slug].tsx
-├── styles/
-└── types/
+â”œâ”€â”€ components/
+â”‚   â”œâ”€â”€ commerce + navigation
+â”‚   â”œâ”€â”€ editorial UI primitives
+â”‚   â”œâ”€â”€ HeroExperience.tsx
+â”‚   â”œâ”€â”€ HeroScene.tsx
+â”‚   â”œâ”€â”€ Newsletter.tsx
+â”‚   â””â”€â”€ Footer.tsx
+â”œâ”€â”€ data/
+â”‚   â”œâ”€â”€ catalog.ts
+â”‚   â””â”€â”€ reviews.ts
+â”œâ”€â”€ lib/
+â”‚   â”œâ”€â”€ catalog helpers
+â”‚   â”œâ”€â”€ cart domain + persistence
+â”‚   â”œâ”€â”€ validation
+â”‚   â””â”€â”€ regression / accessibility contracts
+â”œâ”€â”€ pages/
+â”‚   â”œâ”€â”€ index.tsx
+â”‚   â”œâ”€â”€ categories.tsx
+â”‚   â””â”€â”€ products/[slug].tsx
+â”œâ”€â”€ styles/
+â””â”€â”€ types/
 
 public/
-├── assets/
-└── models/
-    └── fashion_figure_base.glb
+â”œâ”€â”€ assets/
+â””â”€â”€ models/
+    â””â”€â”€ fashion_figure_base.glb
 ```
 
 ### Commerce state
 
 ```text
 CommerceProvider
-└── localStorage: shopco-cart-v2
-    └── CartLine { productId, quantity }
+â””â”€â”€ localStorage: shopco-cart-v2
+    â””â”€â”€ CartLine { productId, quantity }
 ```
 
 Cart calculations and persistence parsing are kept in pure helpers so the domain can later be moved behind a real commerce API without rewriting every UI component.
@@ -182,7 +182,7 @@ The current frontend milestone was closed with all quality gates green:
 
 ```bash
 npm test
-# 40 tests · 40 pass · 0 fail
+# 40 tests Â· 40 pass Â· 0 fail
 
 npm run typecheck
 npm run lint
@@ -211,11 +211,11 @@ npm run build
 
 ## Project evolution
 
-### Phase 1 — Visual revitalization
+### Phase 1 â€” Visual revitalization
 
 Rebuilt the original storefront into a stronger fashion/editorial experience with a responsive design system, accessibility improvements, typography, motion direction and the initial Three.js enhancement.
 
-### Phase 2 — Functional fashion frontend
+### Phase 2 â€” Functional fashion frontend
 
 Converted the static storefront into a working local commerce experience and completed the current portfolio presentation.
 
@@ -238,14 +238,14 @@ See [`CHANGELOG.md`](./CHANGELOG.md) for the condensed release history.
 
 The next milestone focuses on the two deliberately deferred, heavier commerce areas.
 
-### Phase 3A — Catalog expansion / API
+### Phase 3A â€” Catalog expansion / API
 
 - evaluate a stable fashion-product data source
 - normalize external products into the existing `Product` contract
 - expand images, categories and product variety
 - preserve portfolio stability instead of coupling the UI directly to an unreliable remote API
 
-### Phase 3B — Checkout
+### Phase 3B â€” Checkout
 
 - complete checkout flow
 - contact and shipping information
@@ -268,7 +268,7 @@ The next milestone focuses on the two deliberately deferred, heavier commerce ar
 ## Credits
 
 - Design and development: **Luis Henrique Vieira Barros**
-- 3D fashion figure: **Tiko — CC BY 4.0**
+- 3D fashion figure: **Tiko â€” CC BY 4.0**
 - Product imagery and fashion assets are used as part of this portfolio demonstration storefront.
 
 ---
@@ -277,3 +277,4 @@ The next milestone focuses on the two deliberately deferred, heavier commerce ar
   <strong>SHOP.CO</strong><br />
   Built as a fashion interface, engineered as a frontend system.
 </p>
+
