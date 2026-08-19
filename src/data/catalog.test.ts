@@ -15,4 +15,18 @@ describe("static catalog", () => {
     assert.equal(newArrivals.length, 4);
     assert.equal(topSelling.length, 4);
   });
+
+  it("keeps displayed discounts consistent with the listed prices", () => {
+    for (const product of allProducts) {
+      if (!product.previousPrice) {
+        assert.equal(product.discount, undefined);
+        continue;
+      }
+
+      const expected = Math.round(
+        ((product.previousPrice - product.price) / product.previousPrice) * 100,
+      );
+      assert.equal(product.discount, expected, product.name);
+    }
+  });
 });

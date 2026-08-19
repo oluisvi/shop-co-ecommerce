@@ -1,5 +1,6 @@
 import "@/styles/globals.css";
 import "@/styles/fixes.css";
+import "@/styles/experience.css";
 import type { AppProps } from "next/app";
 import localFont from "next/font/local";
 
