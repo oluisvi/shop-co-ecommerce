@@ -4,8 +4,9 @@ import { ProductsModule } from "./modules/products/products.module.js";
 import { CategoriesModule } from "./modules/categories/categories.module.js";
 import { OrdersModule } from "./modules/orders/orders.module.js";
 import { AccountModule } from "./modules/account/account.module.js";
+import { StudioModule } from "./modules/studio/studio.module.js";
 
 @Module({
-  imports: [PrismaModule, ProductsModule, CategoriesModule, OrdersModule, AccountModule],
+  imports: [PrismaModule, ProductsModule, CategoriesModule, OrdersModule, AccountModule, StudioModule],
 })
 export class AppModule {}

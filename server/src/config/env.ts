@@ -6,6 +6,8 @@ type RuntimeEnv = {
   FRONTEND_URL: string;
   FRONTEND_URLS: string[];
   SUPABASE_URL?: string;
+  SUPABASE_SERVICE_ROLE_KEY?: string;
+  SUPABASE_STORAGE_BUCKET: string;
   NODE_ENV: "development" | "test" | "production";
 };
 
@@ -43,6 +45,8 @@ export function validateEnv(source: NodeJS.ProcessEnv): RuntimeEnv {
     FRONTEND_URL: frontendOrigins[0],
     FRONTEND_URLS: frontendOrigins,
     SUPABASE_URL: source.SUPABASE_URL?.trim() || undefined,
+    SUPABASE_SERVICE_ROLE_KEY: source.SUPABASE_SERVICE_ROLE_KEY?.trim() || undefined,
+    SUPABASE_STORAGE_BUCKET: source.SUPABASE_STORAGE_BUCKET?.trim() || "shopco-products",
     NODE_ENV: nodeEnv,
   };
 }
