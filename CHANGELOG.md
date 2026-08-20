@@ -2,6 +2,40 @@
 
 All notable portfolio milestones for SHOP.CO are summarized here.
 
+## 2026-08-20 — Final experience + operational commerce
+
+### Added
+- Supabase Auth accounts, protected profiles/order history, and complete password recovery
+- role-protected Seller Studio with product intake/archive, inventory, safe uploads, orders, fulfillment, and audit events
+- Stripe Checkout, atomic reservations, signed webhooks, idempotent finalization/release, and authoritative success status
+- one-of-one/sold archive UI, thrift metadata, Product JSON-LD, adaptive 3D quality, throttling, and RLS hardening
+
+### Quality and deployment
+- 62 frontend and 67 backend tests passing; typecheck and lint passing
+- catalog, URLs, guest-cart migration, variants, and existing orders preserved
+- implementation is in PR #6; credential-backed production rollout/E2E remains the deployment handoff
+
+## 2026-08-20 — Final evolution foundation
+
+### Added
+- globally installable Supabase Auth session UI and account entry route
+- JWKS-based Supabase JWT verifier with issuer/audience validation
+- additive Prisma models for profiles, roles, thrift metadata, payment events and seller audit events
+- Stripe Checkout parameter and payment-transition domains
+- exact inventory reservation/finalization/release helpers
+- adaptive A/B/C hero capability selection
+- security headers and exact multi-origin CORS parsing
+
+### Quality
+- 55 frontend tests passing
+- 42 backend tests passing
+- frontend/backend typecheck, lint and production builds passing
+- Prisma schema validation and client generation passing
+
+### Honest deployment status
+- no production migration, Stripe endpoint/webhook, protected account API, Seller Studio, or storage upload was deployed in this checkpoint
+- production rollout still requires Supabase/Stripe credentials and completion of those integrations
+
 ## Current — Functional Fashion Frontend
 
 ### Added

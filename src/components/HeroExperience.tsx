@@ -1,6 +1,7 @@
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { chooseCapabilityTier, type CapabilityTier } from "@/lib/capability-tier";
 
 const HeroScene = dynamic(() => import("./HeroScene"), {
   ssr: false,
@@ -14,13 +15,21 @@ const fallbackGarments = [
 ];
 
 export default function HeroExperience() {
-  const [enhanced, setEnhanced] = useState(false);
+  const [tier, setTier] = useState<CapabilityTier>("A");
 
   useEffect(() => {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
     const sync = () => {
-      setEnhanced(!reducedMotion.matches);
+      const navigatorWithHints = navigator as Navigator & { deviceMemory?: number; connection?: { saveData?: boolean } };
+      setTier(chooseCapabilityTier({
+        reducedMotion: reducedMotion.matches,
+        saveData: Boolean(navigatorWithHints.connection?.saveData),
+        width: window.innerWidth,
+        dpr: window.devicePixelRatio,
+        cores: navigator.hardwareConcurrency,
+        memory: navigatorWithHints.deviceMemory,
+      }));
     };
 
     sync();
@@ -32,7 +41,7 @@ export default function HeroExperience() {
   }, []);
 
   return (
-    <div className={`hero-experience fashion-hero ${enhanced ? "is-enhanced" : ""}`} aria-hidden="true">
+    <div className={`hero-experience fashion-hero ${tier !== "A" ? "is-enhanced" : ""}`} data-capability-tier={tier} aria-hidden="true">
       <div className="fashion-rack-static">
         <span className="fashion-rack__rail" />
         <span className="fashion-rack__leg fashion-rack__leg--left" />
@@ -45,7 +54,7 @@ export default function HeroExperience() {
         ))}
       </div>
 
-      {enhanced ? <HeroScene /> : null}
+      {tier !== "A" ? <HeroScene tier={tier} /> : null}
 
       <div className="hero-experience-meta">
         <span>Garment edit / 003</span>

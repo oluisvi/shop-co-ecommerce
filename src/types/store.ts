@@ -31,5 +31,14 @@ export type Product = {
   sizes?: string[];
   variants?: ProductVariant[];
   defaultVariantId?: string | null;
+  availability?: "AVAILABLE" | "SOLD";
+  isOneOfOne?: boolean;
+  soldAt?: string;
+  brand?: string;
+  condition?: "NEW_WITH_TAGS" | "EXCELLENT" | "GOOD" | "FAIR";
+  conditionNotes?: string;
+  material?: string;
+  measurements?: Record<string, string>;
+  imperfections?: string;
 };
 export type Review = { id: string; author: string; rating: number; quote: string; date?: string };

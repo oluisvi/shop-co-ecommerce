@@ -1,9 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
+import Head from "next/head";
 import type { CSSProperties } from "react";
 import { useMemo, useState } from "react";
 import type { GetServerSideProps } from "next";
-import SiteHead from "@/components/SiteHead";
+import SiteHead, { siteUrl } from "@/components/SiteHead";
 import SiteLayout from "@/components/SiteLayout";
 import ProductCard from "@/components/ProductCard";
 import Rating from "@/components/Rating";
@@ -33,6 +34,7 @@ function ProductDetailView({ product, related }: Props) {
     return exact ?? variants.find((variant) => variant.id === product.defaultVariantId) ?? variants[0];
   }, [product, color, size]);
   const available = Boolean(selectedVariant?.active && selectedVariant.availableQuantity > 0);
+  const sold = product.availability === "SOLD" || !available;
   const maxQuantity = Math.min(9, selectedVariant?.availableQuantity ?? 0);
   const add = () => {
     if (!selectedVariant || !available) return;
@@ -42,6 +44,14 @@ function ProductDetailView({ product, related }: Props) {
 
   return <>
     <SiteHead title={`${product.name} | SHOP.CO`} description={`${product.name} from the ${product.collection.toLowerCase()} SHOP.CO edit.`} path={product.href} />
+    <Head><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+      "@context": "https://schema.org", "@type": "Product", name: product.name,
+      image: gallery.map((item) => `${siteUrl}${item.src}`), description: product.description,
+      sku: selectedVariant?.sku, brand: product.brand ? { "@type": "Brand", name: product.brand } : undefined,
+      itemCondition: product.condition ? `https://schema.org/${product.condition === "NEW_WITH_TAGS" ? "NewCondition" : "UsedCondition"}` : undefined,
+      offers: { "@type": "Offer", url: `${siteUrl}${product.href}`, priceCurrency: "USD", price: selectedVariant?.price ?? product.price,
+        availability: sold ? "https://schema.org/SoldOut" : "https://schema.org/InStock" },
+    }).replace(/</g, "\\u003c") }} /></Head>
     <SiteLayout>
       <section className="product-page"><div className="container"><nav className="breadcrumb" aria-label="Breadcrumb"><Link href="/">Home</Link><span aria-hidden="true">/</span><Link href="/categories">Shop</Link><span aria-hidden="true">/</span><span aria-current="page">{product.name}</span></nav>
         <div className="product-detail"><div className={`gallery ${gallery.length === 1 ? "gallery--single" : ""}`}>
@@ -52,9 +62,8 @@ function ProductDetailView({ product, related }: Props) {
           <p className="product-description">{product.description ?? `Part of the ${product.collection.toLowerCase()} SHOP.CO edit.`}</p>
           {product.colors?.length ? <fieldset className="option-group"><legend>Select color <span>{color}</span></legend><div className="color-options">{product.colors.map((option) => <button key={option.name} type="button" aria-label={option.name} aria-pressed={color === option.name} style={{ "--swatch": option.value } as CSSProperties} onClick={() => { setColor(option.name); setQuantity(1); }}><span aria-hidden="true" /></button>)}</div></fieldset> : null}
           {product.sizes?.length ? <fieldset className="option-group"><legend>Choose size <span>{size}</span></legend><div className="size-options">{product.sizes.map((option) => <button key={option} type="button" aria-pressed={size === option} onClick={() => { setSize(option); setQuantity(1); }}>{option}</button>)}</div></fieldset> : null}
-          <div className="purchase-row"><div className="quantity" aria-label="Quantity"><button type="button" aria-label="Decrease quantity" disabled={quantity === 1} onClick={() => setQuantity((value) => changeQuantity(value, -1))}>−</button><output aria-live="polite" aria-label="Selected quantity">{quantity}</output><button type="button" aria-label="Increase quantity" disabled={!available || quantity >= maxQuantity} onClick={() => setQuantity((value) => Math.min(maxQuantity, changeQuantity(value, 1)))}>+</button></div><button className="button button--dark add-button" type="button" onClick={add} disabled={!available}>{available ? `Add ${quantity > 1 ? `${quantity} to` : "to"} bag` : "Sold out"}</button></div>
-          <p className="inventory-note" aria-live="polite">{available ? `${selectedVariant!.availableQuantity} available` : "Currently unavailable"}</p>
-          <dl className="product-facts"><div><dt>Category</dt><dd>{product.category}</dd></div><div><dt>Collection</dt><dd>{product.collection}</dd></div><div><dt>Product code</dt><dd>{selectedVariant?.sku ?? product.id}</dd></div></dl>
+          {sold ? <div className="sold-panel" role="status"><strong>SOLD / ARCHIVE</strong><p>This one-off piece has found a home. Its page remains as part of the SHOP.CO archive.</p></div> : <><div className="purchase-row"><div className="quantity" aria-label="Quantity"><button type="button" aria-label="Decrease quantity" disabled={quantity === 1} onClick={() => setQuantity((value) => changeQuantity(value, -1))}>−</button><output aria-live="polite" aria-label="Selected quantity">{quantity}</output><button type="button" aria-label="Increase quantity" disabled={quantity >= maxQuantity} onClick={() => setQuantity((value) => Math.min(maxQuantity, changeQuantity(value, 1)))}>+</button></div><button className="button button--dark add-button" type="button" onClick={add}>{`Add ${quantity > 1 ? `${quantity} to` : "to"} bag`}</button></div><p className="inventory-note" aria-live="polite">{product.isOneOfOne ? "One of one — the only piece available" : `${selectedVariant!.availableQuantity} available`}</p></>}
+          <dl className="product-facts"><div><dt>Category</dt><dd>{product.category}</dd></div><div><dt>Collection</dt><dd>{product.collection}</dd></div>{product.brand ? <div><dt>Brand</dt><dd>{product.brand}</dd></div> : null}{product.condition ? <div><dt>Condition</dt><dd>{product.condition.replaceAll("_", " ")}</dd></div> : null}{product.material ? <div><dt>Material</dt><dd>{product.material}</dd></div> : null}{product.conditionNotes ? <div><dt>Condition notes</dt><dd>{product.conditionNotes}</dd></div> : null}{product.imperfections ? <div><dt>Imperfections</dt><dd>{product.imperfections}</dd></div> : null}{product.measurements ? Object.entries(product.measurements).map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>) : null}<div><dt>Product code</dt><dd>{selectedVariant?.sku ?? product.id}</dd></div></dl>
         </article></div>
       </div></section>
       {product.id === "one-life" ? <section className="journal-section product-reviews"><div className="container"><SectionHeader index="01" label="Wearer notes" title="Ratings & reviews" /><div className="reviews-grid reviews-grid--product">{productReviews.map((review) => <article className="review-card" key={review.id}><Rating value={review.rating} /><blockquote>“{review.quote}”</blockquote><footer><div><strong>{review.author}</strong><span>Verified customer</span></div><time>{review.date}</time></footer></article>)}</div></div></section> : null}

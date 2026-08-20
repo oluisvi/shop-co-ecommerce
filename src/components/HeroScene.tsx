@@ -1,8 +1,9 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import type { CapabilityTier } from "@/lib/capability-tier";
 
-export default function HeroScene() {
+export default function HeroScene({ tier }: { tier: Exclude<CapabilityTier, "A"> }) {
   const hostRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -213,7 +214,7 @@ export default function HeroScene() {
       const mobile = width < 768;
 
       renderer.setPixelRatio(
-        Math.min(window.devicePixelRatio, mobile ? 1.1 : 1.5),
+        Math.min(window.devicePixelRatio, tier === "C" ? 1.5 : mobile ? 1 : 1.25),
       );
       renderer.setSize(width, height, false);
 
@@ -302,7 +303,7 @@ export default function HeroScene() {
       renderer.dispose();
       renderer.domElement.remove();
     };
-  }, []);
+  }, [tier]);
 
   return (
     <>

@@ -9,6 +9,13 @@ type ProductRecord = {
   collection: string;
   cardImage: string;
   rating: Decimalish;
+  brand?: string | null;
+  condition?: string | null;
+  conditionNotes?: string | null;
+  material?: string | null;
+  measurements?: unknown;
+  imperfections?: string | null;
+  soldAt?: Date | null;
   category: { slug: string; name: string };
   images: { url: string; alt: string; position: number }[];
   variants: {
@@ -59,6 +66,8 @@ export function presentProduct(product: ProductRecord) {
   const gallery = [...product.images]
     .sort((a, b) => a.position - b.position)
     .map((image) => ({ src: image.url, alt: image.alt }));
+  const totalAvailable = variants.reduce((total, variant) => total + (variant.active ? variant.availableQuantity : 0), 0);
+  const totalPhysical = product.variants.reduce((total, variant) => total + (variant.inventory?.quantity ?? 0), 0);
 
   return {
     id: product.id,
@@ -79,6 +88,15 @@ export function presentProduct(product: ProductRecord) {
     sizes,
     variants,
     defaultVariantId: sellable?.id ?? null,
+    availability: totalAvailable > 0 ? "AVAILABLE" as const : "SOLD" as const,
+    isOneOfOne: totalPhysical <= 1,
+    soldAt: product.soldAt?.toISOString(),
+    brand: product.brand ?? undefined,
+    condition: product.condition ?? undefined,
+    conditionNotes: product.conditionNotes ?? undefined,
+    material: product.material ?? undefined,
+    measurements: product.measurements ?? undefined,
+    imperfections: product.imperfections ?? undefined,
   };
 }
 

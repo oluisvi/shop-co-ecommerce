@@ -4,6 +4,12 @@ type RuntimeEnv = {
   DATABASE_URL: string;
   PORT: number;
   FRONTEND_URL: string;
+  FRONTEND_URLS: string[];
+  SUPABASE_URL?: string;
+  SUPABASE_SERVICE_ROLE_KEY?: string;
+  SUPABASE_STORAGE_BUCKET: string;
+  STRIPE_SECRET_KEY?: string;
+  STRIPE_WEBHOOK_SECRET?: string;
   NODE_ENV: "development" | "test" | "production";
 };
 
@@ -24,23 +30,31 @@ export function validateEnv(source: NodeJS.ProcessEnv): RuntimeEnv {
     throw new Error("DATABASE_URL must be a PostgreSQL connection URL");
   }
 
-  const frontendUrl = required(source, "FRONTEND_URL");
-  let frontendOrigin: string;
-  try {
-    frontendOrigin = new URL(frontendUrl).origin;
-  } catch {
-    throw new Error("FRONTEND_URL must be a valid absolute URL");
-  }
+  const frontendValue = source.FRONTEND_URLS?.trim() || required(source, "FRONTEND_URL");
+  const frontendOrigins = frontendValue.split(",").map((value) => value.trim()).filter(Boolean).map((value) => {
+    if (value.includes("*")) throw new Error("FRONTEND_URLS must not contain wildcard origins");
+    try { return new URL(value).origin; } catch { throw new Error("FRONTEND_URLS must contain valid absolute URLs"); }
+  });
 
   const port = Number(source.PORT ?? 4000);
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
     throw new Error("PORT must be an integer between 1 and 65535");
   }
 
+  if (nodeEnv === "production") {
+    for (const key of ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"] as const) required(source, key);
+  }
+
   return {
     DATABASE_URL: databaseUrl,
     PORT: port,
-    FRONTEND_URL: frontendOrigin,
+    FRONTEND_URL: frontendOrigins[0],
+    FRONTEND_URLS: frontendOrigins,
+    SUPABASE_URL: source.SUPABASE_URL?.trim() || undefined,
+    SUPABASE_SERVICE_ROLE_KEY: source.SUPABASE_SERVICE_ROLE_KEY?.trim() || undefined,
+    SUPABASE_STORAGE_BUCKET: source.SUPABASE_STORAGE_BUCKET?.trim() || "shopco-products",
+    STRIPE_SECRET_KEY: source.STRIPE_SECRET_KEY?.trim() || undefined,
+    STRIPE_WEBHOOK_SECRET: source.STRIPE_WEBHOOK_SECRET?.trim() || undefined,
     NODE_ENV: nodeEnv,
   };
 }
