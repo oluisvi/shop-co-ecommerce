@@ -37,9 +37,12 @@ describe("Phase 2 contracts preserved through Phase 3", () => {
   it("preserves guest checkout while handing payment to the server-created Stripe session", () => {
     const layout = readSource("../components/SiteLayout.tsx");
     const checkout = readSource("../pages/checkout.tsx");
+    const footer = readSource("../components/Footer.tsx");
     assert.match(layout, /href=\{cartIssues\.length \? "\/categories" : "\/checkout"\}/);
     assert.match(checkout, /createCheckoutSession/);
     assert.match(checkout, /Stripe-hosted secure payment/i);
     assert.doesNotMatch(checkout, /cardNumber|\bCVC\b.*input/i);
+    assert.match(footer, /Secure Stripe checkout online/);
+    assert.doesNotMatch(footer, /Checkout intentionally offline/);
   });
 });
