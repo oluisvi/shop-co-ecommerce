@@ -53,7 +53,7 @@ export default function Footer() {
           <p className="footer-editorial__label">Store status</p>
           <p>Search + filters online</p>
           <p>Persistent shopping bag</p>
-          <p>Checkout intentionally offline</p>
+          <p>Secure Stripe checkout online</p>
         </div>
 
         <div className="footer-editorial__column footer-editorial__note">
