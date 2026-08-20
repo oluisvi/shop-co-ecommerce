@@ -2,7 +2,7 @@ import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/commo
 import { PrismaService } from '../../prisma/prisma.service.js';
 import type { UpdateProfileDto } from './dto/update-profile.dto.js';
 
-const profileSelect = { id: true, email: true, firstName: true, lastName: true, phone: true, createdAt: true } as const;
+const profileSelect = { id: true, email: true, firstName: true, lastName: true, phone: true, role: true, createdAt: true } as const;
 const orderInclude = { items: true, address: true } as const;
 
 @Injectable()

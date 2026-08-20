@@ -4,6 +4,8 @@ import { FormEvent, ReactNode, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { listProducts } from "@/lib/api/products";
 import { useCommerce } from "@/context/CommerceContext";
+import { useAuth } from "@/context/AuthContext";
+import { getAuthNavigation } from "@/lib/auth-navigation";
 import type { Product } from "@/types/store";
 import { BagIcon, CloseIcon, MenuIcon, SearchIcon, UserIcon } from "./Icons";
 import Newsletter from "./Newsletter";
@@ -27,6 +29,8 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
   const cartButton = useRef<HTMLButtonElement>(null);
   const cartCloseButton = useRef<HTMLButtonElement>(null);
   const router = useRouter();
+  const { user, role, profileLoading } = useAuth();
+  const authNavigation = getAuthNavigation({ authenticated: Boolean(user), profileLoading, role });
   const {
     cart, cartDetails, cartIssues, cartCount, subtotal, reconciling, cartOpen, announcement,
     setQuantity, removeFromCart, clearCart, refreshCart, openCart, closeCart,
@@ -96,7 +100,7 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
   return <>
     <a className="skip-link" href="#main-content">Skip to content</a>
     {promo ? (
-      <div className="promo"><p>SHOP.CO Phase 3 — live catalog, inventory and orders are connected. <Link href="/categories">Explore the edit</Link></p><button type="button" onClick={() => setPromo(false)} aria-label="Dismiss promotion"><CloseIcon /></button></div>
+      <div className="promo"><p>Independent pieces, selected in motion. <Link href="/categories">Explore the edit</Link></p><button type="button" onClick={() => setPromo(false)} aria-label="Dismiss promotion"><CloseIcon /></button></div>
     ) : null}
     <header className="site-header"><div className="container header-inner">
       <button ref={menuButton} type="button" className="icon-button menu-trigger" aria-label="Open navigation" aria-expanded={menuOpen} aria-controls="mobile-navigation" onClick={() => setMenuOpen(true)}><MenuIcon /></button>
@@ -108,11 +112,11 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
         <button className="search-submit" type="submit">Search</button>
         {searchOpen && search.trim() ? <div className="search-popover" id="search-suggestions"><div className="search-popover__head"><span>{searchResults.length ? "Quick results" : "No match yet"}</span><Link href={{ pathname: "/categories", query: { q: search.trim() } }}>See catalog</Link></div>{searchResults.length ? <ul>{searchResults.map((product) => <li key={product.id}><Link href={product.href}><Image src={product.image} alt="" width={54} height={64} /><span><strong>{product.name}</strong><small>{product.category} · ${product.price}</small></span></Link></li>)}</ul> : <p>Try a product type such as T-shirt, jeans, shirt, shorts or polo.</p>}</div> : null}
       </form>
-      <div className="header-actions"><button ref={cartButton} className="icon-button cart-trigger" type="button" aria-label={`Open shopping bag${cartCount ? `, ${cartCount} items` : ""}`} aria-expanded={cartOpen} aria-controls="cart-drawer" onClick={openCart}><BagIcon />{cartCount ? <span className="cart-badge">{cartCount}</span> : null}</button><span className="icon-button unavailable" aria-label="Account — planned for Phase 4"><UserIcon /></span></div>
+      <div className="header-actions"><button ref={cartButton} className="icon-button cart-trigger" type="button" aria-label={`Open shopping bag${cartCount ? `, ${cartCount} items` : ""}`} aria-expanded={cartOpen} aria-controls="cart-drawer" onClick={openCart}><BagIcon />{cartCount ? <span className="cart-badge">{cartCount}</span> : null}</button>{authNavigation.studio ? <Link className="header-studio-link" href={authNavigation.studio.href}>{authNavigation.studio.label}</Link> : null}<Link className="icon-button" href={authNavigation.account.href} aria-label={authNavigation.account.label}><UserIcon /></Link></div>
     </div></header>
 
     <div className={`mobile-backdrop ${menuOpen ? "is-open" : ""}`} onClick={() => setMenuOpen(false)} aria-hidden="true" />
-    <aside id="mobile-navigation" className={`mobile-panel ${menuOpen ? "is-open" : ""}`} role="dialog" aria-modal="true" aria-label="Site navigation" aria-hidden={!menuOpen}><div className="mobile-panel-head"><span>Explore SHOP.CO</span><button ref={menuCloseButton} type="button" className="icon-button" aria-label="Close navigation" onClick={() => setMenuOpen(false)}><CloseIcon /></button></div><nav aria-label="Mobile navigation">{navItems.map((item, index) => <Link key={item.label} href={item.href}><span>0{index + 1}</span>{item.label}</Link>)}</nav><p className="mobile-panel-note">Independent style. One evolving edit.</p></aside>
+    <aside id="mobile-navigation" className={`mobile-panel ${menuOpen ? "is-open" : ""}`} role="dialog" aria-modal="true" aria-label="Site navigation" aria-hidden={!menuOpen}><div className="mobile-panel-head"><span>Explore SHOP.CO</span><button ref={menuCloseButton} type="button" className="icon-button" aria-label="Close navigation" onClick={() => setMenuOpen(false)}><CloseIcon /></button></div><nav aria-label="Mobile navigation">{navItems.map((item, index) => <Link key={item.label} href={item.href}><span>0{index + 1}</span>{item.label}</Link>)}<Link href={authNavigation.account.href}><span>05</span>{authNavigation.account.label}</Link>{authNavigation.studio ? <Link href={authNavigation.studio.href}><span>06</span>{authNavigation.studio.label}</Link> : null}</nav><p className="mobile-panel-note">Independent style. One evolving edit.</p></aside>
 
     <div className={`cart-backdrop ${cartOpen ? "is-open" : ""}`} aria-hidden="true" onClick={closeCart} />
     <aside id="cart-drawer" className={`cart-drawer ${cartOpen ? "is-open" : ""}`} role="dialog" aria-modal="true" aria-labelledby="cart-title" aria-hidden={!cartOpen}>

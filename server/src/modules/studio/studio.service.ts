@@ -48,6 +48,7 @@ export class StudioService {
   async updateProduct(actor: RequestUser, id: string, dto: UpdateStudioProductDto) {
     const existing = await this.prisma.product.findUnique({ where: { id }, include: { variants: { take: 1 } } });
     if (!existing) throw new NotFoundException('Product not found');
+    if (existing.status === 'ARCHIVED') throw new ConflictException('Archived products cannot be edited');
     const data = {
       name: dto.name, description: dto.description, collection: dto.collection, cardImage: dto.cardImage,
       condition: dto.condition, conditionNotes: dto.conditionNotes, brand: dto.brand, material: dto.material,
