@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { buildProfileUpdate } from './account-profile.ts';
 
-test('profile updates trim optional fields and omit empty phone values', () => {
+test('profile updates trim names and clear empty phone values', () => {
   assert.deepEqual(buildProfileUpdate({
     firstName: '  Luis ',
     lastName: ' Vieira  ',
@@ -10,6 +10,6 @@ test('profile updates trim optional fields and omit empty phone values', () => {
   }), {
     firstName: 'Luis',
     lastName: 'Vieira',
-    phone: undefined,
+    phone: null,
   });
 });

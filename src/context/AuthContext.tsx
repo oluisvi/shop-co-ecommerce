@@ -1,8 +1,8 @@
 import type { Session, User } from '@supabase/supabase-js';
-import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { createSupabaseBrowserClient } from '@/lib/supabase';
 import { getAccountProfile, type AccountProfile } from '@/lib/api/account';
-import type { ProfileRole } from '@/lib/auth-navigation';
+import { createProfileRequestGuard, type ProfileRole } from '@/lib/auth-navigation';
 
 const supabase = createSupabaseBrowserClient();
 
@@ -25,6 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<AccountProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
+  const profileRequests = useRef(createProfileRequestGuard());
 
   useEffect(() => {
     if (!supabase) { setLoading(false); return; }
@@ -33,6 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
     const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      profileRequests.current.invalidate();
       setProfile(null);
       setSession(nextSession);
       setLoading(false);
@@ -42,11 +44,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshProfile = useCallback(async () => {
     const accessToken = session?.access_token;
-    if (!accessToken) { setProfile(null); setProfileLoading(false); return; }
+    if (!accessToken) { profileRequests.current.invalidate(); setProfile(null); setProfileLoading(false); return; }
+    const request = profileRequests.current.begin();
     setProfileLoading(true);
-    try { setProfile(await getAccountProfile(accessToken)); }
-    catch { setProfile(null); }
-    finally { setProfileLoading(false); }
+    try {
+      const nextProfile = await getAccountProfile(accessToken);
+      if (profileRequests.current.isCurrent(request)) setProfile(nextProfile);
+    } catch {
+      if (profileRequests.current.isCurrent(request)) setProfile(null);
+    } finally {
+      if (profileRequests.current.isCurrent(request)) setProfileLoading(false);
+    }
   }, [session?.access_token]);
 
   useEffect(() => { void refreshProfile(); }, [refreshProfile]);

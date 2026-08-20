@@ -9,6 +9,6 @@ export function buildProfileUpdate(input: ProfileUpdateInput) {
   return {
     firstName: optional(input.firstName),
     lastName: optional(input.lastName),
-    phone: optional(input.phone),
+    phone: input.phone.trim() || null,
   };
 }

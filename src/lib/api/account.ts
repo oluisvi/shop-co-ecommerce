@@ -17,7 +17,7 @@ export function getAccountProfile(accessToken: string) {
   return apiFetch<AccountProfile>('/account', auth(accessToken));
 }
 
-export function updateAccountProfile(accessToken: string, input: { firstName?: string; lastName?: string; phone?: string }) {
+export function updateAccountProfile(accessToken: string, input: { firstName?: string; lastName?: string; phone?: string | null }) {
   return apiFetch<AccountProfile>('/account', {
     method: 'PATCH',
     headers: { ...auth(accessToken).headers, 'Content-Type': 'application/json' },

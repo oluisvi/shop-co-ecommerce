@@ -8,6 +8,15 @@ type AuthNavigationInput = {
 
 type NavigationLink = { href: string; label: string };
 
+export function createProfileRequestGuard() {
+  let latest = 0;
+  return {
+    begin: () => ++latest,
+    invalidate: () => { latest += 1; },
+    isCurrent: (request: number) => request === latest,
+  };
+}
+
 export function getAuthNavigation(input: AuthNavigationInput): {
   account: NavigationLink;
   studio: NavigationLink | null;

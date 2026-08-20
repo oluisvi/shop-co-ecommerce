@@ -5,6 +5,18 @@ import { AccountService } from './account.service.js';
 describe('AccountService ownership', () => {
   const userId = '4e8f6f86-68af-4e6c-9154-e670035436a1';
 
+  it('returns the server-owned role in authenticated profile responses', async () => {
+    const findUniqueOrThrow = jest.fn<() => Promise<{ id: string; email: string; role: 'SELLER' }>>()
+      .mockResolvedValue({ id: userId, email: 'owner@example.com', role: 'SELLER' });
+    const service = new AccountService({ profile: { findUniqueOrThrow } } as never);
+
+    await expect(service.getProfile(userId)).resolves.toMatchObject({ role: 'SELLER' });
+    expect(findUniqueOrThrow).toHaveBeenCalledWith({
+      where: { id: userId },
+      select: expect.objectContaining({ role: true }),
+    });
+  });
+
   it('lists only orders owned by the verified profile', async () => {
     const findMany = jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]);
     const service = new AccountService({ order: { findMany } } as never);
@@ -24,15 +36,19 @@ describe('AccountService ownership', () => {
     await expect(service.getOrder(userId, 'SHOP-000008')).rejects.toThrow(NotFoundException);
   });
 
-  it('prevents profile updates from changing role or identity', async () => {
+  it('updates only editable profile fields while returning the server-owned role', async () => {
     const update = jest.fn<() => Promise<{ id: string; role: string }>>().mockResolvedValue({ id: userId, role: 'CUSTOMER' });
     const service = new AccountService({ profile: { update } } as never);
     await service.updateProfile(userId, { firstName: 'Luis', lastName: 'Vieira', phone: null });
     expect(update).toHaveBeenCalledWith({
       where: { id: userId },
       data: { firstName: 'Luis', lastName: 'Vieira', phone: null },
-      select: expect.not.objectContaining({ role: true }),
+      select: expect.objectContaining({ role: true }),
     });
+  });
+
+  it('rejects an empty verified profile identity', () => {
+    const service = new AccountService({ profile: { update: jest.fn() } } as never);
     expect(() => service.updateProfile('', { firstName: 'Luis' })).toThrow(ForbiddenException);
   });
 });
