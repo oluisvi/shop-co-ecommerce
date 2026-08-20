@@ -2,6 +2,19 @@
 
 All notable portfolio milestones for SHOP.CO are summarized here.
 
+## 2026-08-20 — Final experience + operational commerce
+
+### Added
+- Supabase Auth accounts, protected profiles/order history, and complete password recovery
+- role-protected Seller Studio with product intake/archive, inventory, safe uploads, orders, fulfillment, and audit events
+- Stripe Checkout, atomic reservations, signed webhooks, idempotent finalization/release, and authoritative success status
+- one-of-one/sold archive UI, thrift metadata, Product JSON-LD, adaptive 3D quality, throttling, and RLS hardening
+
+### Quality and deployment
+- 62 frontend and 67 backend tests passing; typecheck and lint passing
+- catalog, URLs, guest-cart migration, variants, and existing orders preserved
+- implementation is in PR #6; credential-backed production rollout/E2E remains the deployment handoff
+
 ## 2026-08-20 — Final evolution foundation
 
 ### Added

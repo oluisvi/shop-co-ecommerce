@@ -1,37 +1,50 @@
-# Final Evolution Status — 2026-08-20
+# SHOP.CO Final Evolution Report — 2026-08-20
 
-## Baseline
+## Baseline and design decision
 
-The Phase 3 branch began clean with 51 frontend and 27 backend tests passing. The stable catalog, variant guest cart, server pricing, order snapshots, atomic inventory decrement, editorial UI, accessibility primitives, and Three.js lifecycle were kept.
+The branch began with 51 frontend and 27 backend tests. The editorial monochrome system, stable URLs/IDs, variant guest cart, API catalog, server pricing, order snapshots, accessibility primitives, and Three.js GLB lifecycle were strong and were kept. Classification: **KEEP** architecture and identity; **REFINE** capability scaling, product truth states, and metadata; **EXTEND** auth, account, Studio, uploads, payments, reservations, and fulfillment; no wholesale replacement.
 
-## Implemented in this checkpoint
+## Experience
 
-- Design/specification, threat-boundary decisions, and implementation plan.
-- Additive Prisma schema and migration for Profile/SELLER role, thrift product metadata, authenticated orders, Stripe identifiers, PaymentEvent, and AuditEvent.
-- Tested one-off garment defaults and reservation state arithmetic.
-- Supabase browser session provider and accessible sign-up/sign-in/reset/account routes.
-- Tested Supabase asymmetric JWKS verifier with issuer/audience/claim validation.
-- Tested server-authoritative Stripe Checkout session construction and webhook-only status transitions.
-- A/B/C capability selection for reduced-motion, save-data, constrained, normal, and capable devices.
-- Exact CORS allowlist with wildcard rejection and baseline response security headers.
+“The Archive in Motion” now has truthful `1 OF 1` and `SOLD / ARCHIVE` states. Sold pieces remain browsable, have no purchase CTA, and publish SoldOut structured data. Product pages expose thrift inspection fields. The hero remains the anchor: Tier A is static, Tier B uses lower DPR, and Tier C uses the higher capped DPR. Reduced-motion, save-data, visibility/off-screen pausing, and GPU cleanup remain intact.
 
-## Not yet complete or deployed
+## Store operation and accounts
 
-The current checkpoint is not an operational payment/admin release. NestJS guards/profile/order-history endpoints, Seller Studio CRUD, secure Storage upload, Stripe Checkout creation, raw signed webhook processing, atomic Prisma reservation integration, success/cancel status lookup, RLS/grant rollout, and live visual/browser QA remain unimplemented. No production environment was mutated and no payment was attempted.
+Seller Studio is JWT- and role-protected server-side. It provides dashboard counts, product intake, safe image upload, product listing/archive, inventory adjustment, order listing, and legal fulfillment transitions. One-off creation defaults to one unit and seller actions create audit events.
 
-## Verification evidence
+Supabase Auth provides sign-up, sign-in, persistent sessions, sign-out, reset request, password update, and protected account routing. NestJS verifies asymmetric JWTs through JWKS (issuer, audience, signature, expiry). Profiles use the verified subject. Orders are owner-scoped; guest orders are not auto-claimed by email.
 
-- Frontend tests: 55 passed.
-- Backend tests: 42 passed.
+## Payments and inventory
 
-## Dependency audit
+The client sends variant IDs and quantities only. NestJS reloads prices, atomically reserves stock, creates a `PENDING_PAYMENT` order, and opens Stripe-hosted Checkout with fixed origins. The signed raw-body webhook is payment authority. Success finalizes inventory exactly once; expired/failed sessions release reservations; duplicate IDs are idempotent. The success route clears the bag only after authoritative `PAID` status.
 
-`npm audit` reports four high-severity advisories in the frontend dependency tree (`next` via bundled `postcss`/`sharp`, plus transitive `brace-expansion`). The offered aggregate fix upgrades to Next 16, which violates the approved Next 15/Pages Router constraint, so no forced upgrade was applied. These advisories remain an explicit release blocker to reassess against a patched Next 15 release or a separately tested framework upgrade.
-- Frontend/backend typecheck: passed.
-- Frontend/backend lint: passed.
-- Frontend/backend production build: passed.
-- Prisma validate/generate: passed.
+## Security
 
-## External configuration eventually required
+- exact CORS allowlist, Helmet/frontend headers, bounded bodies, DTO whitelisting;
+- server-side JWT/SELLER authorization and owner-scoped data;
+- server-only service-role/Stripe secrets;
+- magic-byte upload checks, executable/SVG rejection, size/dimension limits, random paths, metadata-stripped WebP;
+- global throttling with tighter checkout limits; signed Stripe retries excluded;
+- RLS enabled and direct `anon`/`authenticated` privileges revoked by migration;
+- production startup fails when Supabase/Stripe secrets are absent;
+- webhook signatures/idempotency, DB prices, and atomic reservations protect payment and stock integrity.
 
-Configure explicit Supabase site/redirect URLs, asymmetric signing keys, publishable and server keys, a private Storage bucket, Stripe test secret/webhook keys, Stripe webhook delivery to Render, and matching Vercel/Render origins. Never place service-role or Stripe secret values in `NEXT_PUBLIC_*` variables.
+Residual risk: provider webhook outages can delay release until Stripe retries; no separate scheduled reconciliation worker exists. Rate limits and Checkout expiry reduce reservation abuse but are not a full fraud platform. Dependency advisories need ongoing framework patch review.
+
+## Data, verification, and deployment
+
+Migrations are additive and preserve catalog/order data. They add profiles/roles, thrift metadata, authenticated order relation, payment timestamps/events, audit events, and RLS/grant hardening.
+
+- Frontend: **62/62 tests**, typecheck and lint pass.
+- Backend: **67/67 tests**, typecheck and lint pass.
+- Frontend and backend production builds pass; Prisma schema validate/generate pass.
+- Playwright Firefox: homepage has content, no Next error overlay, zero horizontal overflow at 390×844; password-update form renders and `/studio` redirects guests to sign-in. Console contained no errors (development warnings only).
+- Secret scan found no committed live Stripe/service-role values.
+- Production dependency audits report 3 high advisories in each tree. The offered fixes are breaking Next/Prisma changes, so no `--force` upgrade was applied; reassess patched compatible releases before launch.
+- No live payment, production migration, or environment mutation was performed without private credentials.
+
+Code is pushed on `codex/final-experience-commerce`. Deployment requires Vercel public values; Render database/origin/Supabase/Stripe secrets; migration deploy; Supabase HTTPS redirects; Stripe test webhook registration; and credential-backed success, cancel, expiry, duplicate, account, Studio, and fulfillment E2E.
+
+## Remaining limitations
+
+Production credential-backed E2E, migration application, and responsive browser QA of protected routes remain external release actions. Transactional email, carrier tracking, wishlists, and advanced analytics are future refinements—not claimed features.

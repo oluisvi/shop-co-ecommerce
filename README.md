@@ -23,12 +23,12 @@ The storefront remains a Next.js 15 Pages Router application with the same monoc
 
 ```text
 Next.js storefront
-      ↓ REST
-NestJS Commerce API
-      ↓ Prisma 7
-PostgreSQL
+      ↓ REST                         Supabase Auth
+NestJS Commerce API ← JWT/JWKS      Supabase Storage
+      ↓ Prisma 7                    Stripe Checkout/Webhooks
+Supabase PostgreSQL
       ↓
-Products · Categories · Variants · Inventory · Orders
+Catalog · Profiles · Inventory · Orders · Events
 ```
 
 ## Current status
@@ -42,24 +42,25 @@ Products · Categories · Variants · Inventory · Orders
 | Product detail routes | ✅ Stable slugs + API data |
 | Persistent guest shopping bag | ✅ `variantId + quantity` in localStorage |
 | Cart reconciliation | ✅ Current price / availability / inventory |
-| Checkout | ✅ Contact + shipping + order creation |
-| Payments | 🚧 Stripe domain + reservation schema complete; live endpoint/webhook pending |
-| Authentication / customer accounts | 🚧 Supabase session UI + JWKS verifier complete; protected API pending |
-| Admin tooling | ⏳ Later |
+| Checkout / payments | ✅ Stripe-hosted flow + signed webhook authority |
+| Inventory | ✅ Atomic reserve, finalize, and release |
+| Authentication / accounts | ✅ Supabase Auth + protected profile/order history |
+| Seller Studio | ✅ Catalog, uploads, stock, orders, fulfillment |
+| Production rollout | ⚠️ Credentials, migrations, and test-mode E2E required |
 
 ## Final evolution foundation
 
-The `codex/final-experience-commerce` branch adds the safe foundation for the approved “Archive in Motion” phase without claiming that external commerce is live:
+The `codex/final-experience-commerce` branch delivers the approved “Archive in Motion” implementation:
 
 - additive Profile/role, thrift metadata, payment event, audit event, and Stripe order fields;
 - non-destructive migration preserving the existing catalog and orders;
-- Supabase sign-up, sign-in, sign-out, password reset, persistent client session, and account route;
-- Supabase JWT/JWKS verification domain with issuer and audience validation;
-- tested one-off garment defaults and exact reservation/finalization/release arithmetic;
-- tested Stripe Checkout parameter construction from server prices and webhook-only payment transitions;
-- adaptive 3D capability tiers, explicit CORS origins, and frontend security headers.
+- complete Supabase account recovery and protected owner-scoped account APIs;
+- SELLER-protected Studio operations and hostile-input-aware Storage uploads;
+- server-created Stripe Checkout, atomic reservations, signed raw-body webhooks, idempotency, and status polling;
+- truthful one-of-one/sold archive UI, Product structured data, and thrift inspection fields;
+- adaptive 3D tiers, exact CORS, security headers, throttling, and RLS/direct-access hardening.
 
-The Stripe Checkout API/webhook, protected profile/order APIs, Seller Studio, and Storage upload pipeline are not represented as complete until they are integrated and exercised with real test-project credentials.
+The code is complete and locally verified. Production activation is intentionally not claimed until private Supabase/Stripe/Render values are configured and credential-backed test-mode scenarios pass.
 
 ## Fullstack commerce behavior
 
@@ -170,7 +171,12 @@ No GraphQL, Redis, queues, Kafka, event sourcing, CQRS or microservices are requ
 | GET | `/products/:slug` | product + images + variants + available stock |
 | POST | `/products/reconcile` | validate guest cart against current commerce state |
 | GET | `/categories` | category facets + price range |
-| POST | `/orders` | transactional inventory validation + order creation |
+| POST | `/orders` | backward-compatible route to server-created Checkout |
+| POST | `/checkout/sessions` | reserve stock and create Stripe Checkout |
+| GET | `/checkout/sessions/:id` | authoritative payment/order status |
+| POST | `/webhooks/stripe` | signed Stripe event processing |
+| GET/PATCH | `/account/*` | owner-scoped profile and orders |
+| GET/POST/PATCH | `/studio/*` | SELLER-only operations and uploads |
 
 Errors use a stable contract:
 
@@ -209,6 +215,9 @@ Root `.env.local`:
 
 ```bash
 NEXT_PUBLIC_API_URL=http://localhost:4000
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
 `server/.env`:
@@ -216,7 +225,12 @@ NEXT_PUBLIC_API_URL=http://localhost:4000
 ```bash
 DATABASE_URL=postgresql://...
 PORT=4000
-FRONTEND_URL=http://localhost:3000
+FRONTEND_URLS=http://localhost:3000,https://shop-co-store.vercel.app
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=server-only
+SUPABASE_STORAGE_BUCKET=shopco-products
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
 NODE_ENV=development
 ```
 
@@ -269,6 +283,8 @@ npx prisma validate
 npx prisma generate
 ```
 
+Latest branch evidence: 62/62 frontend tests and 67/67 backend tests pass; both production builds, typechecks, lints, and Prisma validation/generation pass. Browser smoke QA confirms meaningful desktop/mobile content, no framework overlay, no 390 px horizontal overflow, password recovery rendering, and Studio guest protection.
+
 Migration and seed should also be executed against a disposable PostgreSQL database before production deployment.
 
 ## Security foundation
@@ -315,16 +331,9 @@ Search, filters, sorting, stable product routes, persistent guest cart, 3D GLB f
 
 PostgreSQL catalog, variants, inventory, orders, API-backed storefront, cart reconciliation and checkout without payment.
 
-### Phase 4 — Payments + customer accounts
+### Final evolution — Operational digital thrift store
 
-Foundation implemented on the final-evolution branch; integration still required for:
-
-- Stripe/payment provider
-- payment intents or checkout sessions
-- webhooks and payment confirmation
-- protected customer order history
-- transactional email
-- Seller Studio and uploads
+Implemented on the final-evolution branch: Supabase accounts, Seller Studio/uploads, Stripe Checkout/webhooks, inventory reservations, fulfillment, sold archive, adaptive rendering, and security hardening. True future refinements include transactional email, carrier tracking, wishlists, and advanced seller analytics.
 
 ## Credits
 
