@@ -13,7 +13,7 @@ describe("Phase 2 visual experience contracts", () => {
     assert.match(source, /prefers-reduced-motion: reduce/);
     assert.match(source, /chooseCapabilityTier/);
     assert.match(source, /saveData/);
-    assert.match(source, /tier !== "A" \? <HeroScene \/>/);
+    assert.match(source, /tier !== "A" \? <HeroScene tier=\{tier\} \/>/);
     assert.match(source, /dynamic\(\(\) => import\("\.\/HeroScene"\)/);
     assert.match(source, /ssr: false/);
 

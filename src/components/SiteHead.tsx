@@ -1,7 +1,7 @@
 import Head from "next/head";
 
 type Props = { title: string; description: string; path: string };
-const siteUrl = "https://shop-co-ecommerce-three.vercel.app";
+export const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://shop-co-store.vercel.app").replace(/\/$/, "");
 
 export default function SiteHead({ title, description, path }: Props) {
   const canonical = `${siteUrl}${path}`;

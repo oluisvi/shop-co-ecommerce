@@ -3,15 +3,16 @@ import { useRouter } from 'next/router';
 import { useEffect, useState, type FormEvent } from 'react';
 import SiteHead from '@/components/SiteHead';
 import { useAuth } from '@/context/AuthContext';
-import { createStudioProduct, getStudioCategories, getStudioDashboard, uploadStudioImage, type StudioCategory, type StudioDashboard } from '@/lib/api/studio';
+import { adjustStudioInventory, archiveStudioProduct, createStudioProduct, getStudioCategories, getStudioDashboard, getStudioOrders, getStudioProducts, updateStudioOrderStatus, uploadStudioImage, type StudioCategory, type StudioDashboard, type StudioOrder, type StudioProduct } from '@/lib/api/studio';
 
 export default function StudioPage() {
   const router = useRouter(); const { user, accessToken, loading, signOut } = useAuth();
   const [dashboard, setDashboard] = useState<StudioDashboard | null>(null); const [categories, setCategories] = useState<StudioCategory[]>([]);
+  const [products, setProducts] = useState<StudioProduct[]>([]); const [orders, setOrders] = useState<StudioOrder[]>([]);
   const [message, setMessage] = useState(''); const [busy, setBusy] = useState(false);
   useEffect(() => { if (!loading && !user) void router.replace('/auth/sign-in'); }, [loading, user, router]);
-  useEffect(() => { if (!accessToken) return; let active = true; void Promise.all([getStudioDashboard(accessToken), getStudioCategories(accessToken)])
-    .then(([data, nextCategories]) => { if (active) { setDashboard(data); setCategories(nextCategories); } })
+  useEffect(() => { if (!accessToken) return; let active = true; void Promise.all([getStudioDashboard(accessToken), getStudioCategories(accessToken), getStudioProducts(accessToken), getStudioOrders(accessToken)])
+    .then(([data, nextCategories, nextProducts, nextOrders]) => { if (active) { setDashboard(data); setCategories(nextCategories); setProducts(nextProducts); setOrders(nextOrders); } })
     .catch(() => { if (active) setMessage('Seller access is required, or the Studio API is unavailable.'); }); return () => { active = false; }; }, [accessToken]);
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -29,7 +30,7 @@ export default function StudioPage() {
         size: String(data.get('size') || ''), color: String(data.get('color') || ''), published: data.get('published') === 'on',
       });
       form.reset(); setMessage('Piece created. It is now part of the archive.');
-      setDashboard(await getStudioDashboard(accessToken));
+      const [nextDashboard, nextProducts] = await Promise.all([getStudioDashboard(accessToken), getStudioProducts(accessToken)]); setDashboard(nextDashboard); setProducts(nextProducts);
     } catch (error) { setMessage(error instanceof Error ? error.message : 'The piece could not be created.'); }
     finally { setBusy(false); }
   };
@@ -51,5 +52,11 @@ export default function StudioPage() {
         <label>Size<input name="size" maxLength={80} /></label><label>Color<input name="color" maxLength={80} /></label><label>Imperfections<textarea name="imperfections" maxLength={2000} /></label>
         <label>Garment image<input name="image" type="file" accept="image/jpeg,image/png,image/webp,image/avif" required /></label><label className="studio-check"><input name="published" type="checkbox" /> Publish immediately</label>
         <button className="primary-action" disabled={busy}>{busy ? 'Saving piece…' : 'Create piece'}</button></form></section>
+    <section className="studio-editor" aria-labelledby="pieces"><div><p className="eyebrow">Catalog control</p><h2 id="pieces">Pieces</h2><p>Adjust physical stock or preserve a piece by archiving it.</p></div><div className="studio-list">
+      {products.map((product) => { const variant = product.variants[0]; return <article key={product.id}><div><strong>{product.name}</strong><span>{product.status} · ${variant?.price ?? '—'} · {variant?.inventory?.reservedQuantity ?? 0} reserved</span></div>{variant ? <label>Physical stock<input aria-label={`${product.name} physical stock`} type="number" min={variant.inventory?.reservedQuantity ?? 0} defaultValue={variant.inventory?.quantity ?? 0} onBlur={(event) => void adjustStudioInventory(accessToken!, variant.id, Number(event.currentTarget.value)).then(() => setMessage('Inventory updated.')).catch((error) => setMessage(error instanceof Error ? error.message : 'Inventory update failed.'))} /></label> : null}<button type="button" disabled={product.status === 'ARCHIVED'} onClick={() => void archiveStudioProduct(accessToken!, product.id).then(async () => { setProducts(await getStudioProducts(accessToken!)); setMessage('Piece archived.'); }).catch((error) => setMessage(error instanceof Error ? error.message : 'Archive failed.'))}>Archive</button></article>; })}
+    </div></section>
+    <section className="studio-editor" aria-labelledby="orders"><div><p className="eyebrow">Fulfillment</p><h2 id="orders">Orders</h2><p>Only legal forward status transitions are accepted by the API.</p></div><div className="studio-list">
+      {orders.length ? orders.map((order) => <article key={order.orderNumber}><div><strong>{order.orderNumber}</strong><span>{order.status} · {order.currency} {order.total} · {order.items.reduce((sum, item) => sum + item.quantity, 0)} item(s)</span></div><select aria-label={`Next status for ${order.orderNumber}`} defaultValue="" onChange={(event) => { if (!event.currentTarget.value) return; void updateStudioOrderStatus(accessToken!, order.orderNumber, event.currentTarget.value).then(async () => { setOrders(await getStudioOrders(accessToken!)); setMessage('Order status updated.'); }).catch((error) => setMessage(error instanceof Error ? error.message : 'Status update failed.')); }}><option value="">Advance to…</option><option value="PROCESSING">Processing</option><option value="SHIPPED">Shipped</option><option value="DELIVERED">Delivered</option></select></article>) : <p>No orders yet.</p>}
+    </div></section>
   </main>;
 }

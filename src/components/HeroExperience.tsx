@@ -54,7 +54,7 @@ export default function HeroExperience() {
         ))}
       </div>
 
-      {tier !== "A" ? <HeroScene /> : null}
+      {tier !== "A" ? <HeroScene tier={tier} /> : null}
 
       <div className="hero-experience-meta">
         <span>Garment edit / 003</span>
