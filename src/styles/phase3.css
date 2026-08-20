@@ -59,3 +59,4 @@
 .auth-panel h1{font-family:var(--font-integral);font-size:clamp(2.25rem,6vw,4.5rem);line-height:.9;margin:.5rem 0 2rem}
 .auth-panel form,.auth-panel label{display:grid;gap:.5rem}.auth-panel form{gap:1rem}.auth-panel input{min-height:3rem;border:1px solid #777;background:#fff;padding:.75rem;font:inherit}
 .auth-panel nav{display:flex;flex-wrap:wrap;gap:1rem;margin-top:1.5rem}.auth-message{min-height:1.5rem}
+.account-orders{display:grid;gap:.75rem;list-style:none;padding:0;margin:1rem 0 2rem}.account-orders li{border-top:1px solid #999;padding:.8rem 0;display:grid;gap:.5rem}.account-orders li div{display:flex;justify-content:space-between;gap:1rem}.account-orders span{color:#555;text-transform:uppercase;font-size:.78rem;letter-spacing:.08em}

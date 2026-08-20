@@ -5,6 +5,7 @@ type RuntimeEnv = {
   PORT: number;
   FRONTEND_URL: string;
   FRONTEND_URLS: string[];
+  SUPABASE_URL?: string;
   NODE_ENV: "development" | "test" | "production";
 };
 
@@ -41,6 +42,7 @@ export function validateEnv(source: NodeJS.ProcessEnv): RuntimeEnv {
     PORT: port,
     FRONTEND_URL: frontendOrigins[0],
     FRONTEND_URLS: frontendOrigins,
+    SUPABASE_URL: source.SUPABASE_URL?.trim() || undefined,
     NODE_ENV: nodeEnv,
   };
 }

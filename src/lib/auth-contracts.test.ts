@@ -23,3 +23,12 @@ test('public environment never contains privileged Supabase or Stripe keys', () 
   assert.doesNotMatch(example, /NEXT_PUBLIC_(?:SUPABASE_SERVICE_ROLE|STRIPE_SECRET)/);
   assert.match(example, /NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY/);
 });
+
+test('account data uses the Supabase access token and never submits a user id', () => {
+  const api = read('src/lib/api/account.ts');
+  const account = read('src/pages/account/index.tsx');
+  assert.match(api, /Authorization.*Bearer/);
+  assert.doesNotMatch(api, /userId/);
+  assert.match(account, /listAccountOrders\(accessToken\)/);
+  assert.match(account, /orderNumber/);
+});
