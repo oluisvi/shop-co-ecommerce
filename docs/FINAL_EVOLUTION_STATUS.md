@@ -41,10 +41,10 @@ Migrations are additive and preserve catalog/order data. They add profiles/roles
 - Playwright Firefox: homepage has content, no Next error overlay, zero horizontal overflow at 390×844; password-update form renders and `/studio` redirects guests to sign-in. Console contained no errors (development warnings only).
 - Secret scan found no committed live Stripe/service-role values.
 - Production dependency audits report 3 high advisories in each tree. The offered fixes are breaking Next/Prisma changes, so no `--force` upgrade was applied; reassess patched compatible releases before launch.
-- No live payment, production migration, or environment mutation was performed without private credentials.
+- Production migrations were applied on 2026-08-20 through the authenticated Supabase management connection. Prisma checksums are recorded; catalog/order counts were preserved. RLS/direct-access hardening and the constrained `shopco-products` bucket are active.
 
-Code is pushed on `codex/final-experience-commerce`. Deployment requires Vercel public values; Render database/origin/Supabase/Stripe secrets; migration deploy; Supabase HTTPS redirects; Stripe test webhook registration; and credential-backed success, cancel, expiry, duplicate, account, Studio, and fulfillment E2E.
+Vercel production runs merge commit `10eda5f`. Render still serves old commit `086e17a` from `feat/commerce-backend-phase-3`; `/account/profile` and `/checkout/sessions` therefore return 404. Vercel Supabase public configuration is incomplete (`Authentication is not configured`). Render branch/env, Supabase Auth redirects, Stripe test secrets/webhook, intended SELLER identity, and credential-backed E2E remain external activation actions.
 
 ## Remaining limitations
 
-Production credential-backed E2E, migration application, and responsive browser QA of protected routes remain external release actions. Transactional email, carrier tracking, wishlists, and advanced analytics are future refinements—not claimed features.
+Production credential-backed account/payment/Studio E2E remains blocked by the external configuration above. Public production responsive smoke passed. Transactional email, carrier tracking, wishlists, and advanced analytics remain future refinements—not claimed features.
