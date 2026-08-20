@@ -7,10 +7,10 @@ const dto = {
   items: [{ variantId: 'variant-1', quantity: 1 }],
 };
 
-function makeService(gatewayFails = false) {
+function makeService(gatewayFails = false, sharedInventoryUpdate?: (...args: unknown[]) => Promise<{ count: number }>) {
   const variant = { id: 'variant-1', productId: 'product-1', sku: 'PIECE-ONE', color: 'Black', size: 'M', price: 89, active: true,
     product: { id: 'product-1', name: 'Archive jacket', status: 'ACTIVE' }, inventory: { quantity: 1, reservedQuantity: 0 } };
-  const inventoryUpdateMany = jest.fn<(...args: unknown[]) => Promise<{ count: number }>>(async () => ({ count: 1 }));
+  const inventoryUpdateMany = jest.fn<(...args: unknown[]) => Promise<{ count: number }>>(sharedInventoryUpdate ?? (async () => ({ count: 1 })));
   const orderCreate = jest.fn<(...args: unknown[]) => Promise<{ id: number }>>(async () => ({ id: 42 }));
   const orderUpdate = jest.fn<(...args: unknown[]) => Promise<Record<string, unknown>>>(async () => ({ id: 42, orderNumber: 'SHOP-000042', status: 'PENDING_PAYMENT' }));
   const paymentEventFindUnique = jest.fn<(...args: unknown[]) => Promise<null | { id: string }>>(async () => null);
@@ -43,6 +43,25 @@ describe('PaymentsService checkout creation', () => {
     expect(tx.inventory.updateMany).toHaveBeenCalledWith(expect.objectContaining({ data: { reservedQuantity: { decrement: 1 } } }));
     expect(tx.order.update).toHaveBeenCalledWith(expect.objectContaining({ data: { status: 'CANCELLED' } }));
   });
+
+  it('allows only one checkout to reserve the same last unit', async () => {
+    let available = true;
+    const conditionalReserve = async (query: unknown) => {
+      const incrementing = JSON.stringify(query).includes('"increment":1');
+      if (!incrementing) return { count: 1 };
+      if (!available) return { count: 0 };
+      available = false;
+      return { count: 1 };
+    };
+    const first = makeService(false, conditionalReserve).service;
+    const second = makeService(false, conditionalReserve).service;
+
+    await expect(first.createCheckout(dto, undefined)).resolves.toMatchObject({ sessionId: 'cs_test_123' });
+    await expect(second.createCheckout(dto, undefined)).rejects.toMatchObject({
+      statusCode: 409,
+      code: 'INSUFFICIENT_STOCK',
+    });
+  });
 });
 
 describe('PaymentsService webhook finalization', () => {
@@ -69,6 +88,13 @@ describe('PaymentsService webhook finalization', () => {
   it('releases reserved stock when the Checkout Session expires', async () => {
     const { service, tx } = makeService();
     await service.handleWebhook(event('evt_expired', 'checkout.session.expired'));
+    expect(tx.inventory.updateMany).toHaveBeenCalledWith(expect.objectContaining({ data: { reservedQuantity: { decrement: 1 } } }));
+    expect(tx.order.update).toHaveBeenCalledWith(expect.objectContaining({ data: { status: 'CANCELLED' } }));
+  });
+
+  it('releases reserved stock for an async payment failure', async () => {
+    const { service, tx } = makeService();
+    await service.handleWebhook(event('evt_failed', 'checkout.session.async_payment_failed'));
     expect(tx.inventory.updateMany).toHaveBeenCalledWith(expect.objectContaining({ data: { reservedQuantity: { decrement: 1 } } }));
     expect(tx.order.update).toHaveBeenCalledWith(expect.objectContaining({ data: { status: 'CANCELLED' } }));
   });
