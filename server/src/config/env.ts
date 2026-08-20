@@ -41,6 +41,10 @@ export function validateEnv(source: NodeJS.ProcessEnv): RuntimeEnv {
     throw new Error("PORT must be an integer between 1 and 65535");
   }
 
+  if (nodeEnv === "production") {
+    for (const key of ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"] as const) required(source, key);
+  }
+
   return {
     DATABASE_URL: databaseUrl,
     PORT: port,
