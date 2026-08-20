@@ -34,12 +34,12 @@ describe("Phase 2 contracts preserved through Phase 3", () => {
     assert.match(source, /LEGACY_CART_STORAGE_KEY/);
     assert.match(readSource("../components/SiteLayout.tsx"), /removeFromCart\(issue\.variantId\)/);
   });
-  it("adds order creation without introducing a fake payment provider", () => {
+  it("preserves guest checkout while handing payment to the server-created Stripe session", () => {
     const layout = readSource("../components/SiteLayout.tsx");
     const checkout = readSource("../pages/checkout.tsx");
     assert.match(layout, /href=\{cartIssues\.length \? "\/categories" : "\/checkout"\}/);
-    assert.match(checkout, /createOrder/);
-    assert.match(checkout, /does not charge a card/i);
-    assert.doesNotMatch(layout + checkout, /stripe/i);
+    assert.match(checkout, /createCheckoutSession/);
+    assert.match(checkout, /Stripe-hosted secure payment/i);
+    assert.doesNotMatch(checkout, /cardNumber|\bCVC\b.*input/i);
   });
 });

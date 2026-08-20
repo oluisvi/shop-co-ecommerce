@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
-import { json, urlencoded } from "express";
+import { json, raw, urlencoded } from "express";
 import helmet from "helmet";
 import { AppModule } from "./app.module.js";
 import { ApiExceptionFilter } from "./common/filters/api-exception.filter.js";
@@ -17,6 +17,7 @@ async function bootstrap() {
   });
 
   app.use(helmet());
+  app.use("/webhooks/stripe", raw({ type: "application/json", limit: "1mb" }));
   app.use(json({ limit: "100kb" }));
   app.use(urlencoded({ extended: false, limit: "100kb" }));
   app.enableCors({

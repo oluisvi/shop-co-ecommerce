@@ -1,6 +1,6 @@
 import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { jest } from '@jest/globals';
-import { SupabaseAuthGuard, SellerGuard, extractBearerToken } from './auth.guard.js';
+import { OptionalSupabaseAuthGuard, SupabaseAuthGuard, SellerGuard, extractBearerToken } from './auth.guard.js';
 
 describe('authentication guards', () => {
   it('extracts only a non-empty Bearer token', () => {
@@ -30,5 +30,15 @@ describe('authentication guards', () => {
     expect(guard.canActivate(contextFor('SELLER'))).toBe(true);
     expect(() => guard.canActivate(contextFor('CUSTOMER'))).toThrow(ForbiddenException);
     expect(() => guard.canActivate(contextFor())).toThrow(UnauthorizedException);
+  });
+
+  it('keeps guest checkout optional but validates any supplied token', async () => {
+    const authenticate = jest.fn<(token: string) => Promise<{ id: string; email: string; role: 'CUSTOMER' }>>();
+    const guard = new OptionalSupabaseAuthGuard({ authenticate } as never);
+    const guest = { headers: {} };
+    await expect(guard.canActivate({ switchToHttp: () => ({ getRequest: () => guest }) } as never)).resolves.toBe(true);
+    const request = { headers: { authorization: 'Bearer supplied' } };
+    await guard.canActivate({ switchToHttp: () => ({ getRequest: () => request }) } as never).catch(() => undefined);
+    expect(authenticate).toHaveBeenCalledWith('supplied');
   });
 });
