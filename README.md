@@ -46,7 +46,9 @@ Catalog · Profiles · Inventory · Orders · Events
 | Inventory | ✅ Atomic reserve, finalize, and release |
 | Authentication / accounts | ✅ Supabase Auth + protected profile/order history |
 | Seller Studio | ✅ Catalog, uploads, stock, orders, fulfillment |
-| Production rollout | ⚠️ Credentials, migrations, and test-mode E2E required |
+| Production database / Storage | ✅ Final migrations, RLS hardening, and image bucket applied |
+| Production frontend | ✅ Vercel commit `10eda5f` live; public responsive smoke passed |
+| Production backend/auth/payment | ⚠️ Render still on old branch; Supabase Auth env and Stripe test setup pending |
 
 ## Final evolution foundation
 

@@ -2,6 +2,15 @@
 
 All notable portfolio milestones for SHOP.CO are summarized here.
 
+## 2026-08-20 — Production activation checkpoint
+
+- applied and verified additive production migrations without reset, db push, or seed
+- preserved all catalog, inventory, and existing order records
+- enabled RLS and removed direct anonymous/authenticated commerce-table privileges
+- configured the constrained `shopco-products` Storage bucket
+- verified Vercel production commit and public desktop/mobile behavior
+- recorded remaining Render branch/env, Supabase Auth, Stripe test webhook, and SELLER/E2E blockers truthfully
+
 ## 2026-08-20 — Final experience + operational commerce
 
 ### Added
