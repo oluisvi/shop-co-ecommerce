@@ -4,6 +4,7 @@ type RuntimeEnv = {
   DATABASE_URL: string;
   PORT: number;
   FRONTEND_URL: string;
+  FRONTEND_URLS: string[];
   NODE_ENV: "development" | "test" | "production";
 };
 
@@ -24,13 +25,11 @@ export function validateEnv(source: NodeJS.ProcessEnv): RuntimeEnv {
     throw new Error("DATABASE_URL must be a PostgreSQL connection URL");
   }
 
-  const frontendUrl = required(source, "FRONTEND_URL");
-  let frontendOrigin: string;
-  try {
-    frontendOrigin = new URL(frontendUrl).origin;
-  } catch {
-    throw new Error("FRONTEND_URL must be a valid absolute URL");
-  }
+  const frontendValue = source.FRONTEND_URLS?.trim() || required(source, "FRONTEND_URL");
+  const frontendOrigins = frontendValue.split(",").map((value) => value.trim()).filter(Boolean).map((value) => {
+    if (value.includes("*")) throw new Error("FRONTEND_URLS must not contain wildcard origins");
+    try { return new URL(value).origin; } catch { throw new Error("FRONTEND_URLS must contain valid absolute URLs"); }
+  });
 
   const port = Number(source.PORT ?? 4000);
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
@@ -40,7 +39,8 @@ export function validateEnv(source: NodeJS.ProcessEnv): RuntimeEnv {
   return {
     DATABASE_URL: databaseUrl,
     PORT: port,
-    FRONTEND_URL: frontendOrigin,
+    FRONTEND_URL: frontendOrigins[0],
+    FRONTEND_URLS: frontendOrigins,
     NODE_ENV: nodeEnv,
   };
 }

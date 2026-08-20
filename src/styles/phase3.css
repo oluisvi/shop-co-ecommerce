@@ -52,3 +52,10 @@
   cursor: pointer;
   font: inherit;
 }
+/* Account and Studio surfaces are deliberately operational: editorial, fast, no WebGL. */
+.auth-page{min-height:100vh;background:#ecebea;padding:clamp(1.25rem,4vw,4rem);display:grid;align-content:start;gap:clamp(3rem,10vh,8rem)}
+.auth-page__brand{font-family:var(--font-integral);font-size:clamp(1.5rem,3vw,2.5rem);color:#111;text-decoration:none}
+.auth-panel{width:min(100%,34rem);margin:auto;border-top:2px solid #111;padding-top:1.25rem}
+.auth-panel h1{font-family:var(--font-integral);font-size:clamp(2.25rem,6vw,4.5rem);line-height:.9;margin:.5rem 0 2rem}
+.auth-panel form,.auth-panel label{display:grid;gap:.5rem}.auth-panel form{gap:1rem}.auth-panel input{min-height:3rem;border:1px solid #777;background:#fff;padding:.75rem;font:inherit}
+.auth-panel nav{display:flex;flex-wrap:wrap;gap:1rem;margin-top:1.5rem}.auth-message{min-height:1.5rem}

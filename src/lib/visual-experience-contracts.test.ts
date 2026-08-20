@@ -7,11 +7,13 @@ function readSource(relativePath: string) {
 }
 
 describe("Phase 2 visual experience contracts", () => {
-  it("loads the WebGL enhancement whenever motion is allowed", () => {
+  it("loads WebGL only when motion and device capability allow it", () => {
     const source = readSource("../components/HeroExperience.tsx");
 
     assert.match(source, /prefers-reduced-motion: reduce/);
-    assert.match(source, /setEnhanced\(!reducedMotion\.matches\)/);
+    assert.match(source, /chooseCapabilityTier/);
+    assert.match(source, /saveData/);
+    assert.match(source, /tier !== "A" \? <HeroScene \/>/);
     assert.match(source, /dynamic\(\(\) => import\("\.\/HeroScene"\)/);
     assert.match(source, /ssr: false/);
 

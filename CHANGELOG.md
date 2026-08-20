@@ -2,6 +2,27 @@
 
 All notable portfolio milestones for SHOP.CO are summarized here.
 
+## 2026-08-20 — Final evolution foundation
+
+### Added
+- globally installable Supabase Auth session UI and account entry route
+- JWKS-based Supabase JWT verifier with issuer/audience validation
+- additive Prisma models for profiles, roles, thrift metadata, payment events and seller audit events
+- Stripe Checkout parameter and payment-transition domains
+- exact inventory reservation/finalization/release helpers
+- adaptive A/B/C hero capability selection
+- security headers and exact multi-origin CORS parsing
+
+### Quality
+- 55 frontend tests passing
+- 42 backend tests passing
+- frontend/backend typecheck, lint and production builds passing
+- Prisma schema validation and client generation passing
+
+### Honest deployment status
+- no production migration, Stripe endpoint/webhook, protected account API, Seller Studio, or storage upload was deployed in this checkpoint
+- production rollout still requires Supabase/Stripe credentials and completion of those integrations
+
 ## Current — Functional Fashion Frontend
 
 ### Added

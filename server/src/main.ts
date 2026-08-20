@@ -20,9 +20,9 @@ async function bootstrap() {
   app.use(json({ limit: "100kb" }));
   app.use(urlencoded({ extended: false, limit: "100kb" }));
   app.enableCors({
-    origin: env.FRONTEND_URL,
-    methods: ["GET", "POST", "OPTIONS"],
-    allowedHeaders: ["Content-Type"],
+    origin: env.FRONTEND_URLS,
+    methods: ["GET", "POST", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Stripe-Signature"],
     credentials: false,
   });
   app.useGlobalPipes(

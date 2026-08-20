@@ -43,9 +43,23 @@ Products · Categories · Variants · Inventory · Orders
 | Persistent guest shopping bag | ✅ `variantId + quantity` in localStorage |
 | Cart reconciliation | ✅ Current price / availability / inventory |
 | Checkout | ✅ Contact + shipping + order creation |
-| Payments | ⏳ Phase 4 |
-| Authentication / customer accounts | ⏳ Phase 4 |
+| Payments | 🚧 Stripe domain + reservation schema complete; live endpoint/webhook pending |
+| Authentication / customer accounts | 🚧 Supabase session UI + JWKS verifier complete; protected API pending |
 | Admin tooling | ⏳ Later |
+
+## Final evolution foundation
+
+The `codex/final-experience-commerce` branch adds the safe foundation for the approved “Archive in Motion” phase without claiming that external commerce is live:
+
+- additive Profile/role, thrift metadata, payment event, audit event, and Stripe order fields;
+- non-destructive migration preserving the existing catalog and orders;
+- Supabase sign-up, sign-in, sign-out, password reset, persistent client session, and account route;
+- Supabase JWT/JWKS verification domain with issuer and audience validation;
+- tested one-off garment defaults and exact reservation/finalization/release arithmetic;
+- tested Stripe Checkout parameter construction from server prices and webhook-only payment transitions;
+- adaptive 3D capability tiers, explicit CORS origins, and frontend security headers.
+
+The Stripe Checkout API/webhook, protected profile/order APIs, Seller Studio, and Storage upload pipeline are not represented as complete until they are integrated and exercised with real test-project credentials.
 
 ## Fullstack commerce behavior
 
@@ -303,15 +317,14 @@ PostgreSQL catalog, variants, inventory, orders, API-backed storefront, cart rec
 
 ### Phase 4 — Payments + customer accounts
 
-Planned, not implemented here:
+Foundation implemented on the final-evolution branch; integration still required for:
 
 - Stripe/payment provider
 - payment intents or checkout sessions
 - webhooks and payment confirmation
-- authentication
-- customer account / order history
+- protected customer order history
 - transactional email
-- admin tooling
+- Seller Studio and uploads
 
 ## Credits
 
