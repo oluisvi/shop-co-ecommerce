@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 
 import SiteHead from '@/components/SiteHead';
 import { useAuth } from '@/context/AuthContext';
@@ -29,6 +29,46 @@ import {
 
 type StudioView = 'overview' | 'products' | 'orders' | 'add-product';
 
+type ProductFilter =
+  | 'ALL'
+  | 'ACTIVE'
+  | 'DRAFT'
+  | 'SOLD_OUT'
+  | 'ARCHIVED';
+
+type OrderFilter =
+  | 'ALL'
+  | 'PAID'
+  | 'PROCESSING'
+  | 'SHIPPED'
+  | 'DELIVERED'
+  | 'CANCELLED';
+
+const PRODUCT_FILTERS: Array<{ value: ProductFilter; label: string }> = [
+  { value: 'ALL', label: 'All' },
+  { value: 'ACTIVE', label: 'Active' },
+  { value: 'DRAFT', label: 'Draft' },
+  { value: 'SOLD_OUT', label: 'Sold out' },
+  { value: 'ARCHIVED', label: 'Archived' },
+];
+
+const ORDER_FILTERS: Array<{ value: OrderFilter; label: string }> = [
+  { value: 'ALL', label: 'All' },
+  { value: 'PAID', label: 'Paid' },
+  { value: 'PROCESSING', label: 'Processing' },
+  { value: 'SHIPPED', label: 'Shipped' },
+  { value: 'DELIVERED', label: 'Delivered' },
+  { value: 'CANCELLED', label: 'Cancelled' },
+];
+
+function isProductSoldOut(product: StudioProduct) {
+  if (!product.variants.length) return false;
+
+  return product.variants.every(
+    (variant) => (variant.inventory?.quantity ?? 0) === 0,
+  );
+}
+
 export default function StudioPage() {
   const router = useRouter();
 
@@ -50,8 +90,13 @@ export default function StudioPage() {
   const [busy, setBusy] = useState(false);
   const [studioLoading, setStudioLoading] = useState(true);
 
-  const [activeView, setActiveView] =
-    useState<StudioView>('overview');
+  const [activeView, setActiveView] = useState<StudioView>('overview');
+
+  const [productSearch, setProductSearch] = useState('');
+  const [productFilter, setProductFilter] = useState<ProductFilter>('ALL');
+
+  const [orderSearch, setOrderSearch] = useState('');
+  const [orderFilter, setOrderFilter] = useState<OrderFilter>('ALL');
 
   useEffect(() => {
     if (!loading && !user) {
@@ -60,12 +105,7 @@ export default function StudioPage() {
   }, [loading, user, router]);
 
   useEffect(() => {
-    if (
-      !loading &&
-      !profileLoading &&
-      user &&
-      role !== 'SELLER'
-    ) {
+    if (!loading && !profileLoading && user && role !== 'SELLER') {
       void router.replace('/account');
     }
   }, [loading, profileLoading, user, role, router]);
@@ -81,21 +121,14 @@ export default function StudioPage() {
       getStudioProducts(accessToken),
       getStudioOrders(accessToken),
     ])
-      .then(
-        ([
-          data,
-          nextCategories,
-          nextProducts,
-          nextOrders,
-        ]) => {
-          if (!active) return;
+      .then(([data, nextCategories, nextProducts, nextOrders]) => {
+        if (!active) return;
 
-          setDashboard(data);
-          setCategories(nextCategories);
-          setProducts(nextProducts);
-          setOrders(nextOrders);
-        },
-      )
+        setDashboard(data);
+        setCategories(nextCategories);
+        setProducts(nextProducts);
+        setOrders(nextOrders);
+      })
       .catch(() => {
         if (active) {
           setMessage(
@@ -114,9 +147,41 @@ export default function StudioPage() {
     };
   }, [accessToken]);
 
-  const submit = async (
-    event: FormEvent<HTMLFormElement>,
-  ) => {
+  const filteredProducts = useMemo(() => {
+    const normalizedSearch = productSearch.trim().toLowerCase();
+
+    return products.filter((product) => {
+      const matchesSearch =
+        !normalizedSearch ||
+        product.name.toLowerCase().includes(normalizedSearch);
+
+      const matchesFilter =
+        productFilter === 'ALL'
+          ? true
+          : productFilter === 'SOLD_OUT'
+            ? isProductSoldOut(product)
+            : product.status === productFilter;
+
+      return matchesSearch && matchesFilter;
+    });
+  }, [products, productSearch, productFilter]);
+
+  const filteredOrders = useMemo(() => {
+    const normalizedSearch = orderSearch.trim().toLowerCase();
+
+    return orders.filter((order) => {
+      const matchesSearch =
+        !normalizedSearch ||
+        order.orderNumber.toLowerCase().includes(normalizedSearch);
+
+      const matchesFilter =
+        orderFilter === 'ALL' ? true : order.status === orderFilter;
+
+      return matchesSearch && matchesFilter;
+    });
+  }, [orders, orderSearch, orderFilter]);
+
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!accessToken) return;
@@ -133,56 +198,33 @@ export default function StudioPage() {
         throw new Error('Choose a garment image.');
       }
 
-      const uploaded = await uploadStudioImage(
-        accessToken,
-        file,
-      );
+      const uploaded = await uploadStudioImage(accessToken, file);
 
       await createStudioProduct(accessToken, {
         name: String(data.get('name')),
         slug: String(data.get('slug')),
-        description: String(
-          data.get('description') || '',
-        ),
-
+        description: String(data.get('description') || ''),
         categoryId: String(data.get('categoryId')),
         collection: String(data.get('collection')),
-
         cardImage: uploaded.url,
-
-        priceCents: Math.round(
-          Number(data.get('price')) * 100,
-        ),
-
+        priceCents: Math.round(Number(data.get('price')) * 100),
         condition: String(data.get('condition')),
-
-        conditionNotes: String(
-          data.get('conditionNotes') || '',
-        ),
-
+        conditionNotes: String(data.get('conditionNotes') || ''),
         brand: String(data.get('brand') || ''),
         material: String(data.get('material') || ''),
-        imperfections: String(
-          data.get('imperfections') || '',
-        ),
-
+        imperfections: String(data.get('imperfections') || ''),
         size: String(data.get('size') || ''),
         color: String(data.get('color') || ''),
-
         published: data.get('published') === 'on',
       });
 
       form.reset();
+      setMessage('Piece created. It is now part of the archive.');
 
-      setMessage(
-        'Piece created. It is now part of the archive.',
-      );
-
-      const [nextDashboard, nextProducts] =
-        await Promise.all([
-          getStudioDashboard(accessToken),
-          getStudioProducts(accessToken),
-        ]);
+      const [nextDashboard, nextProducts] = await Promise.all([
+        getStudioDashboard(accessToken),
+        getStudioProducts(accessToken),
+      ]);
 
       setDashboard(nextDashboard);
       setProducts(nextProducts);
@@ -229,38 +271,21 @@ export default function StudioPage() {
 
           <button
             type="button"
-            onClick={() =>
-              void signOut().then(() =>
-                router.push('/'),
-              )
-            }
+            onClick={() => void signOut().then(() => router.push('/'))}
           >
             Sign out
           </button>
         </div>
       </header>
 
-      <p
-        className="auth-message"
-        role="status"
-        aria-live="polite"
-      >
+      <p className="auth-message" role="status" aria-live="polite">
         {message}
       </p>
 
-      {/* Studio navigation */}
-
-      <nav
-        className="studio-nav"
-        aria-label="Seller Studio sections"
-      >
+      <nav className="studio-nav" aria-label="Seller Studio sections">
         <button
           type="button"
-          className={
-            activeView === 'overview'
-              ? 'is-active'
-              : ''
-          }
+          className={activeView === 'overview' ? 'is-active' : ''}
           aria-pressed={activeView === 'overview'}
           onClick={() => setActiveView('overview')}
         >
@@ -269,11 +294,7 @@ export default function StudioPage() {
 
         <button
           type="button"
-          className={
-            activeView === 'products'
-              ? 'is-active'
-              : ''
-          }
+          className={activeView === 'products' ? 'is-active' : ''}
           aria-pressed={activeView === 'products'}
           onClick={() => setActiveView('products')}
         >
@@ -282,11 +303,7 @@ export default function StudioPage() {
 
         <button
           type="button"
-          className={
-            activeView === 'orders'
-              ? 'is-active'
-              : ''
-          }
+          className={activeView === 'orders' ? 'is-active' : ''}
           aria-pressed={activeView === 'orders'}
           onClick={() => setActiveView('orders')}
         >
@@ -295,29 +312,16 @@ export default function StudioPage() {
 
         <button
           type="button"
-          className={
-            activeView === 'add-product'
-              ? 'is-active'
-              : ''
-          }
-          aria-pressed={
-            activeView === 'add-product'
-          }
-          onClick={() =>
-            setActiveView('add-product')
-          }
+          className={activeView === 'add-product' ? 'is-active' : ''}
+          aria-pressed={activeView === 'add-product'}
+          onClick={() => setActiveView('add-product')}
         >
           Add Product
         </button>
       </nav>
 
-      {/* Overview */}
-
       {activeView === 'overview' && dashboard ? (
-        <section
-          className="studio-metrics"
-          aria-label="Store overview"
-        >
+        <section className="studio-metrics" aria-label="Store overview">
           <article>
             <strong>{dashboard.activePieces}</strong>
             <span>Active pieces</span>
@@ -340,377 +344,367 @@ export default function StudioPage() {
         </section>
       ) : null}
 
-      {/* Products */}
-
       {activeView === 'products' ? (
-        <section
-          className="studio-editor"
-          aria-labelledby="pieces"
-        >
+        <section className="studio-editor" aria-labelledby="pieces">
           <div>
-            <p className="eyebrow">
-              Catalog control
-            </p>
-
+            <p className="eyebrow">Catalog control</p>
             <h2 id="pieces">Pieces</h2>
-
             <p>
-              Adjust physical stock or preserve a piece
-              by archiving it.
+              Search, filter, edit inventory or preserve a piece by archiving
+              it.
             </p>
           </div>
 
-          <div className="studio-list">
-            {products.length ? (
-              products.map((product) => {
-                const variant =
-                  product.variants[0];
+          <div>
+            <div className="studio-tools" aria-label="Product controls">
+              <label className="studio-search">
+                <span>Search products</span>
+                <input
+                  type="search"
+                  value={productSearch}
+                  onChange={(event) => setProductSearch(event.target.value)}
+                  placeholder="Search by piece name"
+                />
+              </label>
 
-                return (
-                  <article key={product.id}>
-                    <form
-                      onSubmit={(event) => {
-                        event.preventDefault();
+              <div className="studio-filters" aria-label="Filter products">
+                {PRODUCT_FILTERS.map((filter) => (
+                  <button
+                    key={filter.value}
+                    type="button"
+                    className={
+                      productFilter === filter.value ? 'is-active' : ''
+                    }
+                    aria-pressed={productFilter === filter.value}
+                    onClick={() => setProductFilter(filter.value)}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
 
-                        if (!variant) return;
+              <p className="studio-results-count">
+                {filteredProducts.length}{' '}
+                {filteredProducts.length === 1 ? 'piece' : 'pieces'}
+              </p>
+            </div>
 
-                        const data = new FormData(
-                          event.currentTarget,
-                        );
+            <div className="studio-list">
+              {filteredProducts.length ? (
+                filteredProducts.map((product) => {
+                  const variant = product.variants[0];
+                  const soldOut = isProductSoldOut(product);
 
-                        try {
-                          const input =
-                            buildStudioProductUpdate({
-                              name: String(
-                                data.get('name') ?? '',
-                              ),
+                  return (
+                    <article key={product.id}>
+                      <div className="studio-item-meta">
+                        <span
+                          className={`studio-status studio-status--${product.status.toLowerCase()}`}
+                        >
+                          {product.status}
+                        </span>
 
-                              price: String(
-                                data.get('price') ?? '',
-                              ),
+                        {soldOut ? (
+                          <span className="studio-status studio-status--sold-out">
+                            Sold out
+                          </span>
+                        ) : null}
 
-                              published:
-                                data.get('published') ===
-                                'on',
+                        {soldOut && product.status !== 'ARCHIVED' ? (
+                          <span className="studio-operational-note">
+                            Ready to archive
+                          </span>
+                        ) : null}
+                      </div>
+
+                      <form
+                        onSubmit={(event) => {
+                          event.preventDefault();
+
+                          if (!variant) return;
+
+                          const data = new FormData(event.currentTarget);
+
+                          try {
+                            const input = buildStudioProductUpdate({
+                              name: String(data.get('name') ?? ''),
+                              price: String(data.get('price') ?? ''),
+                              published: data.get('published') === 'on',
                             });
 
-                          void updateStudioProduct(
-                            accessToken!,
-                            product.id,
-                            input,
-                          )
-                            .then(async () => {
-                              setProducts(
-                                await getStudioProducts(
-                                  accessToken!,
-                                ),
-                              );
-
-                              setMessage(
-                                'Piece updated.',
-                              );
-                            })
-                            .catch((error) =>
-                              setMessage(
-                                error instanceof Error
-                                  ? error.message
-                                  : 'Update failed.',
-                              ),
-                            );
-                        } catch {
-                          setMessage(
-                            'Enter a valid name and price.',
-                          );
-                        }
-                      }}
-                    >
-                      <label>
-                        Piece name
-
-                        <input
-                          name="name"
-                          defaultValue={product.name}
-                          maxLength={160}
-                          required
-                        />
-                      </label>
-
-                      {variant ? (
-                        <label>
-                          Price (USD)
-
-                          <input
-                            name="price"
-                            type="number"
-                            min="0.01"
-                            max="100000"
-                            step="0.01"
-                            defaultValue={
-                              variant.price
-                            }
-                            required
-                          />
-                        </label>
-                      ) : null}
-
-                      <label className="studio-check">
-                        <input
-                          name="published"
-                          type="checkbox"
-                          defaultChecked={
-                            product.status ===
-                            'ACTIVE'
-                          }
-                          disabled={
-                            product.status ===
-                            'ARCHIVED'
-                          }
-                        />
-
-                        Published
-                      </label>
-
-                      <button
-                        type="submit"
-                        disabled={
-                          !variant ||
-                          product.status ===
-                            'ARCHIVED'
-                        }
-                      >
-                        Save piece
-                      </button>
-                    </form>
-
-                    <div>
-                      <span>
-                        {product.status} ·{' '}
-                        {variant?.inventory
-                          ?.reservedQuantity ?? 0}{' '}
-                        reserved
-                      </span>
-                    </div>
-
-                    {variant ? (
-                      <label>
-                        Physical stock
-
-                        <input
-                          aria-label={`${product.name} physical stock`}
-                          type="number"
-                          min={
-                            variant.inventory
-                              ?.reservedQuantity ?? 0
-                          }
-                          defaultValue={
-                            variant.inventory
-                              ?.quantity ?? 0
-                          }
-                          onBlur={(event) =>
-                            void adjustStudioInventory(
+                            void updateStudioProduct(
                               accessToken!,
-                              variant.id,
-                              Number(
-                                event.currentTarget
-                                  .value,
-                              ),
+                              product.id,
+                              input,
                             )
-                              .then(() =>
-                                setMessage(
-                                  'Inventory updated.',
-                                ),
-                              )
+                              .then(async () => {
+                                setProducts(
+                                  await getStudioProducts(accessToken!),
+                                );
+                                setMessage('Piece updated.');
+                              })
                               .catch((error) =>
                                 setMessage(
                                   error instanceof Error
                                     ? error.message
-                                    : 'Inventory update failed.',
+                                    : 'Update failed.',
                                 ),
-                              )
+                              );
+                          } catch {
+                            setMessage('Enter a valid name and price.');
                           }
-                        />
-                      </label>
-                    ) : null}
+                        }}
+                      >
+                        <label>
+                          Piece name
+                          <input
+                            name="name"
+                            defaultValue={product.name}
+                            maxLength={160}
+                            required
+                          />
+                        </label>
 
-                    <button
-                      type="button"
-                      disabled={
-                        product.status ===
-                        'ARCHIVED'
-                      }
-                      onClick={() =>
-                        void archiveStudioProduct(
-                          accessToken!,
-                          product.id,
-                        )
-                          .then(async () => {
-                            setProducts(
-                              await getStudioProducts(
+                        {variant ? (
+                          <label>
+                            Price (USD)
+                            <input
+                              name="price"
+                              type="number"
+                              min="0.01"
+                              max="100000"
+                              step="0.01"
+                              defaultValue={variant.price}
+                              required
+                            />
+                          </label>
+                        ) : null}
+
+                        <label className="studio-check">
+                          <input
+                            name="published"
+                            type="checkbox"
+                            defaultChecked={product.status === 'ACTIVE'}
+                            disabled={product.status === 'ARCHIVED'}
+                          />
+                          Published
+                        </label>
+
+                        <button
+                          type="submit"
+                          disabled={!variant || product.status === 'ARCHIVED'}
+                        >
+                          Save piece
+                        </button>
+                      </form>
+
+                      <div>
+                        <span>
+                          Stock: {variant?.inventory?.quantity ?? 0} · Reserved:{' '}
+                          {variant?.inventory?.reservedQuantity ?? 0}
+                        </span>
+                      </div>
+
+                      {variant ? (
+                        <label>
+                          Physical stock
+                          <input
+                            aria-label={`${product.name} physical stock`}
+                            type="number"
+                            min={variant.inventory?.reservedQuantity ?? 0}
+                            defaultValue={variant.inventory?.quantity ?? 0}
+                            onBlur={(event) =>
+                              void adjustStudioInventory(
                                 accessToken!,
-                              ),
-                            );
+                                variant.id,
+                                Number(event.currentTarget.value),
+                              )
+                                .then(() =>
+                                  setMessage('Inventory updated.'),
+                                )
+                                .catch((error) =>
+                                  setMessage(
+                                    error instanceof Error
+                                      ? error.message
+                                      : 'Inventory update failed.',
+                                  ),
+                                )
+                            }
+                          />
+                        </label>
+                      ) : null}
 
-                            setMessage(
-                              'Piece archived.',
-                            );
-                          })
-                          .catch((error) =>
-                            setMessage(
-                              error instanceof Error
-                                ? error.message
-                                : 'Archive failed.',
-                            ),
-                          )
-                      }
-                    >
-                      Archive
-                    </button>
-                  </article>
-                );
-              })
-            ) : (
-              <p>
-                No pieces yet. Add the first garment
-                to begin the archive.
-              </p>
-            )}
-          </div>
-        </section>
-      ) : null}
-
-      {/* Orders */}
-
-      {activeView === 'orders' ? (
-        <section
-          className="studio-editor"
-          aria-labelledby="orders"
-        >
-          <div>
-            <p className="eyebrow">
-              Fulfillment
-            </p>
-
-            <h2 id="orders">Orders</h2>
-
-            <p>
-              Only legal forward status transitions are
-              accepted by the API.
-            </p>
-          </div>
-
-          <div className="studio-list">
-            {orders.length ? (
-              orders.map((order) => {
-                const nextStatus =
-                  getNextFulfillmentStatus(
-                    order.status,
-                  );
-
-                return (
-                  <article
-                    key={order.orderNumber}
-                  >
-                    <div>
-                      <strong>
-                        {order.orderNumber}
-                      </strong>
-
-                      <span>
-                        {order.status} ·{' '}
-                        {order.currency}{' '}
-                        {order.total} ·{' '}
-                        {order.items.reduce(
-                          (sum, item) =>
-                            sum + item.quantity,
-                          0,
-                        )}{' '}
-                        item(s)
-                      </span>
-                    </div>
-
-                    {nextStatus ? (
                       <button
                         type="button"
+                        disabled={product.status === 'ARCHIVED'}
                         onClick={() =>
-                          void updateStudioOrderStatus(
-                            accessToken!,
-                            order.orderNumber,
-                            nextStatus,
-                          )
+                          void archiveStudioProduct(accessToken!, product.id)
                             .then(async () => {
-                              setOrders(
-                                await getStudioOrders(
-                                  accessToken!,
-                                ),
+                              setProducts(
+                                await getStudioProducts(accessToken!),
                               );
-
-                              setMessage(
-                                'Order status updated.',
-                              );
+                              setMessage('Piece archived.');
                             })
                             .catch((error) =>
                               setMessage(
                                 error instanceof Error
                                   ? error.message
-                                  : 'Status update failed.',
+                                  : 'Archive failed.',
                               ),
                             )
                         }
                       >
-                        Mark as{' '}
-                        {nextStatus.toLowerCase()}
+                        {product.status === 'ARCHIVED' ? 'Archived' : 'Archive'}
                       </button>
-                    ) : (
-                      <span>
-                        No fulfillment action available
-                      </span>
-                    )}
-                  </article>
-                );
-              })
-            ) : (
-              <p>No orders yet.</p>
-            )}
+                    </article>
+                  );
+                })
+              ) : (
+                <p className="studio-empty-state">
+                  No pieces match the current search and filters.
+                </p>
+              )}
+            </div>
           </div>
         </section>
       ) : null}
 
-      {/* Add product */}
+      {activeView === 'orders' ? (
+        <section className="studio-editor" aria-labelledby="orders">
+          <div>
+            <p className="eyebrow">Fulfillment</p>
+            <h2 id="orders">Orders</h2>
+            <p>
+              Find orders quickly and move them through legal fulfillment
+              states.
+            </p>
+          </div>
+
+          <div>
+            <div className="studio-tools" aria-label="Order controls">
+              <label className="studio-search">
+                <span>Search orders</span>
+                <input
+                  type="search"
+                  value={orderSearch}
+                  onChange={(event) => setOrderSearch(event.target.value)}
+                  placeholder="Search by order number"
+                />
+              </label>
+
+              <div className="studio-filters" aria-label="Filter orders">
+                {ORDER_FILTERS.map((filter) => (
+                  <button
+                    key={filter.value}
+                    type="button"
+                    className={
+                      orderFilter === filter.value ? 'is-active' : ''
+                    }
+                    aria-pressed={orderFilter === filter.value}
+                    onClick={() => setOrderFilter(filter.value)}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
+
+              <p className="studio-results-count">
+                {filteredOrders.length}{' '}
+                {filteredOrders.length === 1 ? 'order' : 'orders'}
+              </p>
+            </div>
+
+            <div className="studio-list">
+              {filteredOrders.length ? (
+                filteredOrders.map((order) => {
+                  const nextStatus = getNextFulfillmentStatus(order.status);
+
+                  return (
+                    <article key={order.orderNumber}>
+                      <div className="studio-order-main">
+                        <div>
+                          <strong>{order.orderNumber}</strong>
+
+                          <span
+                            className={`studio-status studio-status--${order.status.toLowerCase()}`}
+                          >
+                            {order.status.replaceAll('_', ' ')}
+                          </span>
+                        </div>
+
+                        <span>
+                          {order.currency} {order.total} ·{' '}
+                          {order.items.reduce(
+                            (sum, item) => sum + item.quantity,
+                            0,
+                          )}{' '}
+                          item(s)
+                        </span>
+                      </div>
+
+                      {nextStatus ? (
+                        <button
+                          type="button"
+                          className="studio-primary-action"
+                          onClick={() =>
+                            void updateStudioOrderStatus(
+                              accessToken!,
+                              order.orderNumber,
+                              nextStatus,
+                            )
+                              .then(async () => {
+                                setOrders(
+                                  await getStudioOrders(accessToken!),
+                                );
+                                setMessage('Order status updated.');
+                              })
+                              .catch((error) =>
+                                setMessage(
+                                  error instanceof Error
+                                    ? error.message
+                                    : 'Status update failed.',
+                                ),
+                              )
+                          }
+                        >
+                          Mark as {nextStatus.toLowerCase()}
+                        </button>
+                      ) : (
+                        <span className="studio-operational-note">
+                          No fulfillment action available
+                        </span>
+                      )}
+                    </article>
+                  );
+                })
+              ) : (
+                <p className="studio-empty-state">
+                  No orders match the current search and filters.
+                </p>
+              )}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       {activeView === 'add-product' ? (
-        <section
-          className="studio-editor"
-          aria-labelledby="new-piece"
-        >
+        <section className="studio-editor" aria-labelledby="new-piece">
           <div>
-            <p className="eyebrow">
-              Archive intake
-            </p>
-
-            <h1 id="new-piece">
-              Add a garment
-            </h1>
-
+            <p className="eyebrow">Archive intake</p>
+            <h1 id="new-piece">Add a garment</h1>
             <p>
-              One sellable variant and one unit are
-              created by default.
+              One sellable variant and one unit are created by default.
             </p>
           </div>
 
           <form onSubmit={submit}>
             <label>
               Piece name
-
-              <input
-                name="name"
-                maxLength={160}
-                required
-              />
+              <input name="name" maxLength={160} required />
             </label>
 
             <label>
               Slug
-
               <input
                 name="slug"
                 pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
@@ -720,50 +714,28 @@ export default function StudioPage() {
 
             <label>
               Description
-
-              <textarea
-                name="description"
-                maxLength={4000}
-              />
+              <textarea name="description" maxLength={4000} />
             </label>
 
             <label>
               Category
-
-              <select
-                name="categoryId"
-                required
-              >
-                <option value="">
-                  Select
-                </option>
-
-                {categories.map(
-                  (category) => (
-                    <option
-                      value={category.id}
-                      key={category.id}
-                    >
-                      {category.name}
-                    </option>
-                  ),
-                )}
+              <select name="categoryId" required>
+                <option value="">Select</option>
+                {categories.map((category) => (
+                  <option value={category.id} key={category.id}>
+                    {category.name}
+                  </option>
+                ))}
               </select>
             </label>
 
             <label>
               Drop / collection
-
-              <input
-                name="collection"
-                maxLength={120}
-                required
-              />
+              <input name="collection" maxLength={120} required />
             </label>
 
             <label>
               Price (USD)
-
               <input
                 name="price"
                 type="number"
@@ -776,86 +748,46 @@ export default function StudioPage() {
 
             <label>
               Condition
-
-              <select
-                name="condition"
-                required
-              >
-                <option value="EXCELLENT">
-                  Excellent
-                </option>
-
-                <option value="NEW_WITH_TAGS">
-                  New with tags
-                </option>
-
-                <option value="GOOD">
-                  Good
-                </option>
-
-                <option value="FAIR">
-                  Fair
-                </option>
+              <select name="condition" required>
+                <option value="EXCELLENT">Excellent</option>
+                <option value="NEW_WITH_TAGS">New with tags</option>
+                <option value="GOOD">Good</option>
+                <option value="FAIR">Fair</option>
               </select>
             </label>
 
             <label>
               Condition notes
-
-              <textarea
-                name="conditionNotes"
-                maxLength={2000}
-              />
+              <textarea name="conditionNotes" maxLength={2000} />
             </label>
 
             <label>
               Brand
-
-              <input
-                name="brand"
-                maxLength={120}
-              />
+              <input name="brand" maxLength={120} />
             </label>
 
             <label>
               Material
-
-              <input
-                name="material"
-                maxLength={240}
-              />
+              <input name="material" maxLength={240} />
             </label>
 
             <label>
               Size
-
-              <input
-                name="size"
-                maxLength={80}
-              />
+              <input name="size" maxLength={80} />
             </label>
 
             <label>
               Color
-
-              <input
-                name="color"
-                maxLength={80}
-              />
+              <input name="color" maxLength={80} />
             </label>
 
             <label>
               Imperfections
-
-              <textarea
-                name="imperfections"
-                maxLength={2000}
-              />
+              <textarea name="imperfections" maxLength={2000} />
             </label>
 
             <label>
               Garment image
-
               <input
                 name="image"
                 type="file"
@@ -865,21 +797,12 @@ export default function StudioPage() {
             </label>
 
             <label className="studio-check">
-              <input
-                name="published"
-                type="checkbox"
-              />
-
+              <input name="published" type="checkbox" />
               Publish immediately
             </label>
 
-            <button
-              className="primary-action"
-              disabled={busy}
-            >
-              {busy
-                ? 'Saving piece…'
-                : 'Create piece'}
+            <button className="primary-action" disabled={busy}>
+              {busy ? 'Saving piece…' : 'Create piece'}
             </button>
           </form>
         </section>
