@@ -208,3 +208,177 @@
     padding-inline: 1rem;
   }
 }
+
+/* Seller Studio search + filters */
+
+.studio-tools {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.studio-search {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.studio-search span {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.studio-search input {
+  width: 100%;
+  min-height: 3rem;
+  border: 1px solid #888;
+  background: #fff;
+  color: #111;
+  padding: 0.75rem 0.9rem;
+  font: inherit;
+}
+
+.studio-search input:focus-visible {
+  outline: 2px solid #111;
+  outline-offset: 3px;
+}
+
+.studio-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.studio-filters button {
+  min-height: 2.5rem;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid #999;
+  background: transparent;
+  color: #111;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease;
+}
+
+.studio-filters button:hover {
+  border-color: #111;
+}
+
+.studio-filters button.is-active {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
+
+.studio-filters button:focus-visible {
+  outline: 2px solid #111;
+  outline-offset: 3px;
+}
+
+.studio-results-count {
+  margin: 0;
+  color: #666;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.studio-item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.studio-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.75rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #888;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.studio-status--active,
+.studio-status--paid,
+.studio-status--processing,
+.studio-status--shipped {
+  border-color: #111;
+}
+
+.studio-status--archived,
+.studio-status--cancelled {
+  opacity: 0.6;
+}
+
+.studio-status--sold-out {
+  border-color: #111;
+  background: #111;
+  color: #fff;
+}
+
+.studio-operational-note {
+  color: #666;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.studio-order-main {
+  display: grid;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.studio-order-main > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.studio-primary-action {
+  min-height: 2.75rem !important;
+}
+
+.studio-empty-state {
+  margin: 0;
+  padding: 2rem 0;
+  border-top: 1px solid #aaa;
+  color: #666;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-filters button {
+    transition: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .studio-filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+  }
+
+  .studio-filters button {
+    flex: 0 0 auto;
+  }
+
+  .studio-order-main > div {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
