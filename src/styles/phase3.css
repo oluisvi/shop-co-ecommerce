@@ -132,3 +132,79 @@
     width: 100%;
   }
 }
+
+/* Seller Studio navigation */
+
+.studio-nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  width: 100%;
+  margin: 1.5rem 0 2rem;
+  padding: 0.5rem;
+
+  overflow-x: auto;
+
+  background: rgba(236, 235, 234, 0.94);
+  border-bottom: 1px solid #999;
+
+  backdrop-filter: blur(12px);
+}
+
+.studio-nav button {
+  flex: 0 0 auto;
+
+  min-height: 2.75rem;
+  padding: 0.7rem 1rem;
+
+  border: 1px solid transparent;
+  background: transparent;
+  color: #111;
+
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  cursor: pointer;
+
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease;
+}
+
+.studio-nav button:hover {
+  border-color: #111;
+}
+
+.studio-nav button.is-active {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
+
+.studio-nav button:focus-visible {
+  outline: 2px solid #111;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-nav button {
+    transition: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .studio-nav {
+    margin-inline: -1rem;
+    width: calc(100% + 2rem);
+    padding-inline: 1rem;
+  }
+}
