@@ -40,21 +40,117 @@ export default function AccountPage() {
   };
   if (loading || profileLoading || !user) return <main className="auth-page"><p role="status">Checking your account…</p></main>;
   return <main className="auth-page"><SiteHead title="Your archive | SHOP.CO" description="Profile and order history." path="/account" />
-    <Link href="/" className="auth-page__brand">SHOP.CO</Link><section className="auth-panel"><p className="eyebrow">Customer archive</p><h1>Your account</h1>
-      <p>Signed in as <strong>{profile?.email ?? user.email}</strong></p>
-      <p className="auth-message" role="status" aria-live="polite">{message}</p>
-      {profile?.role === 'SELLER' ? <p><Link href="/studio">Open Seller Studio</Link></p> : null}
-      <form key={profile?.id ?? 'profile'} className="auth-form" onSubmit={submitProfile}>
-        <label>First name<input name="firstName" maxLength={80} defaultValue={profile?.firstName ?? ''} autoComplete="given-name" /></label>
-        <label>Last name<input name="lastName" maxLength={80} defaultValue={profile?.lastName ?? ''} autoComplete="family-name" /></label>
-        <label>Phone<input name="phone" type="tel" maxLength={30} defaultValue={profile?.phone ?? ''} autoComplete="tel" /></label>
-        <button className="primary-action" disabled={saving}>{saving ? 'Saving…' : 'Save profile'}</button>
-      </form>
-      <section aria-labelledby="order-history"><h2 id="order-history">Order history</h2>
-        {orders.length ? <ul className="account-orders">{orders.map((order) => <li key={order.id}>
-          <div><strong>{order.orderNumber}</strong><span>{order.status.replaceAll('_', ' ')}</span></div>
-          <div><span>{new Intl.DateTimeFormat('en', { dateStyle: 'medium' }).format(new Date(order.createdAt))}</span><strong>{new Intl.NumberFormat('en-US', { style: 'currency', currency: order.currency }).format(Number(order.total))}</strong></div>
-        </li>)}</ul> : <p>No account orders yet. Guest orders are not claimed automatically.</p>}
-      </section>
+    <Link href="/" className="auth-page__brand">
+  SHOP.CO
+</Link>
+
+<section className="auth-panel">
+  <p className="eyebrow">Customer archive</p>
+
+  <h1>Your account</h1>
+
+  <p>
+    Signed in as <strong>{profile?.email ?? user.email}</strong>
+  </p>
+
+  <p
+    className="auth-message"
+    role="status"
+    aria-live="polite"
+  >
+    {message}
+  </p>
+
+  {profile?.role === 'SELLER' ? (
+    <div className="account-seller-actions">
+      <Link
+        href="/studio"
+        className="seller-studio-cta"
+      >
+        <span>Open Seller Studio</span>
+        <span aria-hidden="true">→</span>
+      </Link>
+    </div>
+  ) : null}
+
+  <form
+    key={profile?.id ?? 'profile'}
+    className="auth-form"
+    onSubmit={submitProfile}
+  >
+    <label>
+      First name
+      <input
+        name="firstName"
+        maxLength={80}
+        defaultValue={profile?.firstName ?? ''}
+        autoComplete="given-name"
+      />
+    </label>
+
+    <label>
+      Last name
+      <input
+        name="lastName"
+        maxLength={80}
+        defaultValue={profile?.lastName ?? ''}
+        autoComplete="family-name"
+      />
+    </label>
+
+    <label>
+      Phone
+      <input
+        name="phone"
+        type="tel"
+        maxLength={30}
+        defaultValue={profile?.phone ?? ''}
+        autoComplete="tel"
+      />
+    </label>
+
+    <button
+      className="primary-action"
+      disabled={saving}
+    >
+      {saving ? 'Saving…' : 'Save profile'}
+    </button>
+  </form>
+
+  <section aria-labelledby="order-history">
+    <h2 id="order-history">Order history</h2>
+
+    {orders.length ? (
+      <ul className="account-orders">
+        {orders.map((order) => (
+          <li key={order.id}>
+            <div>
+              <strong>{order.orderNumber}</strong>
+              <span>{order.status.replaceAll('_', ' ')}</span>
+            </div>
+
+            <div>
+              <span>
+                {new Intl.DateTimeFormat('en', {
+                  dateStyle: 'medium',
+                }).format(new Date(order.createdAt))}
+              </span>
+
+              <strong>
+                {new Intl.NumberFormat('en-US', {
+                  style: 'currency',
+                  currency: order.currency,
+                }).format(Number(order.total))}
+              </strong>
+            </div>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p>
+        No account orders yet. Guest orders are not claimed automatically.
+      </p>
+    )}
+  </section>
       <button className="primary-action" onClick={() => void signOut().then(() => router.push('/'))}>Sign out</button></section></main>;
 }
