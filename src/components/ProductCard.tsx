@@ -11,7 +11,8 @@ export default function ProductCard({ product }: { product: Product }) {
   const [added, setAdded] = useState(false);
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const variantId = product.defaultVariantId ?? product.variants?.find((variant) => variant.active && variant.availableQuantity > 0)?.id;
-  const sold = product.availability === "SOLD" || !variantId;
+  const catalogPreview = !product.variants?.length && product.availability === undefined;
+  const sold = product.availability === "SOLD" || (!catalogPreview && !variantId);
 
   useEffect(() => () => { if (resetTimer.current) clearTimeout(resetTimer.current); }, []);
   const add = () => {
@@ -39,7 +40,7 @@ export default function ProductCard({ product }: { product: Product }) {
         {variantId ? <button type="button" className={`quick-add ${added ? "is-added" : ""}`} onClick={add}
           aria-label={`${added ? "Added" : "Add"} ${product.name} to bag`}>
           <BagIcon /><span>{added ? "Added" : "Add"}</span>
-        </button> : <span className="archive-status" aria-label={`${product.name} is sold`}>Archive piece</span>}
+        </button> : catalogPreview ? <span className="archive-status">Catalog preview</span> : <span className="archive-status" aria-label={`${product.name} is sold`}>Archive piece</span>}
       </div>
     </article>
   );
